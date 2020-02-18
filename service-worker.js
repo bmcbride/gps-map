@@ -10,7 +10,7 @@
  See the License for the specific language governing permissions and
  limitations under the License.
 */
-const PRECACHE = 'precache-02.17.20.9';
+const PRECACHE = 'precache-02.17.20.10';
 const RUNTIME = 'runtime';
 
 // A list of local resources we always want to be cached.
