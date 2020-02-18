@@ -323,7 +323,7 @@ function goOffline() {
 }
 
 function showHelp() {
-  const info = 'Welcome to GPS Map, an offline capable map viewer with GPS integration!\n\nTap the crosshairs button to locate, zoom to, and follow your GPS location.\n\nTap the map/marker button to load an MBTiles, GeoJSON, KML, or GPX file directly from your device.\n\nTap the layers button to view online basemaps and manage offline layers.';
+  const info = 'Welcome to GPS Map, an offline capable map viewer with GPS integration!\n\nTap the crosshairs button to locate, zoom to, and follow your GPS location.\n\nTap the map/marker button to load an MBTiles, GeoJSON, KML, or GPX file directly from your device.\n\nTap the layers button to view online basemaps and manage offline layers.\n\nDeveloped by Bryan McBride - mcbride.bryan@gmail.com';
   alert(info);
 }
 
