@@ -1,0 +1,27 @@
+html, body, #map {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+}
+.leaflet-control-layers-overlays label div input {
+  float: left;
+}
+.layer-name {
+  float: left;
+}
+.layer-buttons {
+  float: right;
+}
+.layer-btn {
+  padding-left: 6px;
+}
+.file-control-btn {
+  font-size: 1.4em;
+  color: #444;
+  cursor: pointer;
+}
+@media (max-width: 768px) {
+  .leaflet-control-layers-list {
+    font-size: large;
+  }
+}
