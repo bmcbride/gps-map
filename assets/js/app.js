@@ -17,13 +17,10 @@ const layers = {
       attribution: '© <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, © <a href="https://carto.com/attribution">CARTO</a>',
     }).addTo(map),
 
-    "Aerial": L.tileLayer.wms("https://orthos.dhses.ny.gov/ArcGIS/services/Latest/MapServer/WMSServer", {
-      layers: "0,1,2,3,4",
-      format: "image/png",
-      transparent: true,
-      maxNativeZoom: 18,
+    "Aerial": L.tileLayer("https://basemap.nationalmap.gov/arcgis/rest/services/USGSImageryOnly/MapServer/tile/{z}/{y}/{x}", {
+      maxNativeZoom: 16,
       maxZoom: map.getMaxZoom(),
-      attribution: "<a href='https://gis.ny.gov/gateway/mg/webserv/webserv.html' class='external'>NYSDOP</a>"
+      attribution: "USGS",
     }),
     
     "Topo": L.tileLayer("https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer/tile/{z}/{y}/{x}", {
