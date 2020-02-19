@@ -144,10 +144,10 @@ function loadVector(file, name, format) {
       }),
       style: function (feature) {
         return {
-          color: feature.properties["stroke"] ? feature.properties["stroke"] : "#3388ff",
+          color: feature.properties["stroke"] ? feature.properties["stroke"] : "red",
           opacity: feature.properties["stroke-opacity"] ? feature.properties["stroke-opacity"] : 1.0,
           weight: feature.properties["stroke-width"] ? feature.properties["stroke-width"] : 3,
-          fillColor: feature.properties["fill"] ? feature.properties["fill"] : "#3388ff",
+          fillColor: feature.properties["fill"] ? feature.properties["fill"] : "red",
           fillOpacity: feature.properties["fill-opacity"] ? feature.properties["fill-opacity"] : 0.2,
         };
       },
