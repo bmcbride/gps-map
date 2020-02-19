@@ -172,6 +172,11 @@ function loadVector(file, name, format) {
             const acres = (sqMeters / 4046.86);
             const area = (acres < 640) ? (acres.toFixed(1) + " Acres") : ((sqMeters / 2589990).toFixed(1) + " Sq. Miles");
             table += `<tr><th>AREA</th><td>${area}</td></tr>`;
+          } else if (feature.geometry.type === "Point") {
+            const latitude = feature.geometry.coordinates[1].toFixed(6);
+            const longitude = feature.geometry.coordinates[0].toFixed(6);
+            table += `<tr><th>LATITUDE</th><td>${latitude}</td></tr>`;
+            table += `<tr><th>LONGITUDE</th><td>${longitude}</td></tr>`;
           }
         }
 

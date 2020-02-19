@@ -3,6 +3,17 @@ html, body, #map {
   width: 100%;
   margin: 0;
 }
+table {
+  border-collapse: collapse;
+  border-bottom: 1px solid #ccc;
+}
+table th, td {
+  border: 1px solid #ccc;
+  padding: 5px;
+}
+table tr:nth-child(even) {
+  background-color: #f7f7f7;
+}
 .leaflet-control-layers-overlays label div input {
   float: left;
 }
