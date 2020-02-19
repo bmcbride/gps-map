@@ -36,7 +36,7 @@ Tapping on the app icon will launch the app in standalone mode, running in its o
 ### Loading Custom Maps
 To load custom offline maps, tap the map/marker button in the upper left corner of the screen and use the browser's file picker to select a supported file type (.mbtiles, .geojson, .kml, .gpx).
 
-- **Raster MBTiles** - a robust [specification](https://github.com/mapbox/mbtiles-spec) for storing rendered map image tiles and metadata in a SQLite database. There is plenty of open source tooling for generating raster MBTiles (GDAL, QGIS, TileMill) plus an excellent standalone freemium tool - MapTiler Desktop.
+- **Raster MBTiles** - a robust [specification](https://github.com/mapbox/mbtiles-spec) for storing rendered map image tiles and metadata in a SQLite database. There is plenty of open source tooling for generating raster MBTiles ([GDAL](https://gdal.org/drivers/raster/mbtiles.html), [QGIS](https://qgis.org/en/site/forusers/visualchangelog38/index.html#feature-generate-raster-xyz-tiles), [TileMill](https://tilemill-project.github.io/tilemill/)) plus an excellent standalone freemium tool - [MapTiler Desktop](https://www.maptiler.com/desktop/).
 
 - **Vector Files (GeoJSON, KML, GPX)** - while raster maps typically help to convey a fuller picture (terrain, imagery, labels, legends, additional context, etc.), vector files are much easier to edit and make excellent overlays to highlight trails and other assets. Many other mobile apps can also generate KML & GPX files for things like GPS logs, which can be easily viewed in this app.
 
@@ -45,11 +45,11 @@ The app uses a standard HTML file input and the *FileReader* API to read the con
 ## Leaflet Configurations & Other Niceties
 Below are a few of the Leaflet configurations I found useful on this project.
 
-- **Disabling Map Zoom Snapping** - Setting the map zoomSnap value to 0 makes pinch zooming on mobile much more fluid.
+- **Disabling Map Zoom Snapping** - Setting the map `zoomSnap` value to `0` makes pinch zooming on mobile much more fluid.
 
-- **Auto-scaling Tile Layers** - Most web services covering large areas serve tiles up to a maximum zoom level of 18. The USGS base maps are only cached up to zoom level 16. Specifying a maxZoom for the map at 22 and setting the maxNativeZoom for the tile layers allows for auto-scaling or overzooming when you have an MBTiles overlay with zoom levels greater than your basemap. Basically, this allows you to zoom in nice and deep, regardless of the layers added to the map.
+- **Auto-scaling Tile Layers** - Most web services covering large areas serve tiles up to a maximum zoom level of 18. The USGS base maps are only cached up to zoom level 16. Specifying a `maxZoom` for the map at `22` and setting the `maxNativeZoom` for the tile layers allows for auto-scaling or overzooming when you have an MBTiles overlay with zoom levels greater than your basemap. Basically, this allows you to zoom in nice and deep, regardless of the layers added to the map.
 
-- **Disabling *updateWhenIdle* Setting for MBTiles** - By default on mobile, tile layers are only loaded once a map pan has ended. This is set to prevent too many web requests impacting navigation. Setting this false on MBTiles layers makes them load quicker for  more seamless navigation.
+- **Disabling *updateWhenIdle* Setting for MBTiles** - By default on mobile, tile layers are only loaded once a map pan has ended. This is set to prevent too many web requests impacting navigation. Setting `updateWhenIdle` to `false` on MBTiles layers makes them load quicker for more seamless navigation.
 
 - **Vector Feature Selection** - Leaflet makes it easy to open a popup window when a feature is clicked/tapped, but for line features especially, there's no visual way to detect the actual line segment selected. The app includes a 'select' layer to highlight the feature you've selected.
 
