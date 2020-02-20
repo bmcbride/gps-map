@@ -180,9 +180,9 @@ function loadVector(file, name, format) {
           }
         }
 
-        const styleProps = ["styleUrl", "styleHash", "styleMapHash", "stroke", "stroke-opacity", "stroke-width", "opacity", "fill", "fill-opacity", "icon", "scale"];
+        const hiddenProps = ["styleUrl", "styleHash", "styleMapHash", "stroke", "stroke-opacity", "stroke-width", "opacity", "fill", "fill-opacity", "icon", "scale", "coordTimes"];
         for (const key in feature.properties) {
-          if (feature.properties.hasOwnProperty(key) && styleProps.indexOf(key) == -1) {
+          if (feature.properties.hasOwnProperty(key) && hiddenProps.indexOf(key) == -1) {
             table += "<tr><th>" + key.toUpperCase() + "</th><td>" + formatProperty(feature.properties[key]) + "</td></tr>";
           }
         }
