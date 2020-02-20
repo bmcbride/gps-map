@@ -85,7 +85,7 @@ const controls = {
     cacheLocation: true,
     position: "topleft",
     flyTo: false,
-    keepCurrentZoomLevel: true,
+    keepCurrentZoomLevel: false,
     circleStyle: {
       interactive: false
     },
@@ -93,8 +93,8 @@ const controls = {
       interactive: false
     },
     locateOptions: {
-      enableHighAccuracy: true/*,
-      maxZoom: 19*/
+      enableHighAccuracy: true,
+      maxZoom: 18
     },
     onLocationError: function(e) {
       alert(e.message);
