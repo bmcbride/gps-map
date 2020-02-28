@@ -1,7 +1,11 @@
 const map = L.map("map", {
   zoomSnap: 0,
   maxZoom: 22,
-  zoomControl: false
+  zoomControl: false,
+  renderer: L.canvas({
+    padding: 0.5,
+    tolerance: 10
+  })
 }).fitWorld();
 map.attributionControl.setPrefix(`<a href="#" onclick="showHelp(); return false;">Help</a>`);
 
@@ -138,10 +142,6 @@ function loadVector(file, name, format) {
     }
 
     const layer = L.geoJSON(geojson, {
-      renderer: L.canvas({
-        padding: 0.5,
-        tolerance: 10
-      }),
       style: function (feature) {
         return {
           color: feature.properties["stroke"] ? feature.properties["stroke"] : "red",
