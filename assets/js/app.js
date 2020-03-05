@@ -7,7 +7,7 @@ const map = L.map("map", {
     tolerance: 10
   })
 }).fitWorld();
-map.attributionControl.setPrefix(`<a href="#" onclick="showHelp(); return false;">Help</a>`);
+map.attributionControl.setPrefix(`<a href="#" onclick="showHelp(); return false;">Help</a> | <a href="#" id="lock-btn" onclick="toggleScreenLock(); return false;">Lock</a>`);
 
 map.once("locationfound", function(e) {
   map.fitBounds(e.bounds, {maxZoom: 18});
@@ -332,10 +332,7 @@ function showHelp() {
   alert(info);
 }
 
-window.addEventListener("offline",  function(e) {
-  goOffline();
-});
-
+// Drag and drop files
 const dropArea = document.getElementById("map");
 
 ["dragenter", "dragover", "dragleave", "drop"].forEach(eventName => {
@@ -357,6 +354,37 @@ dropArea.addEventListener("drop", function(e) {
   const file = e.dataTransfer.files[0];
   handleFile(file);
 }, false);
+
+// Experimental screen locking
+let wakeLock = null;
+
+const requestWakeLock = async () => {
+  try {
+    wakeLock = await navigator.wakeLock.request("screen");
+    wakeLock.addEventListener("release", () => {
+      console.log("Wake Lock was released");
+      document.getElementById("lock-btn").style.color = "";
+    });
+    console.log("Wake Lock is active");
+    document.getElementById("lock-btn").style.color = "red";
+  } catch (e) {
+    console.error(`${e.name}, ${e.message}`);
+  }
+};
+
+function toggleScreenLock() {
+  if (confirm("Keep screen awake?")) {
+    requestWakeLock();
+  } else {
+    if (wakeLock) {
+      wakeLock.release();
+    }
+  }
+}
+
+window.addEventListener("offline",  function(e) {
+  goOffline();
+});
 
 initSqlJs({
   locateFile: function() {
