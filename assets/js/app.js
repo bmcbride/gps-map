@@ -7,10 +7,14 @@ const map = L.map("map", {
     tolerance: 10
   })
 }).fitWorld();
-map.attributionControl.setPrefix(`<a href="#" onclick="showHelp(); return false;">Help</a> | <a href="#" id="lock-btn" onclick="toggleScreenLock(); return false;">Lock</a>`);
+map.attributionControl.setPrefix(`<a href="#" data-toggle="modal" data-target="#helpModal">Help</a> | <a href="#" id="lock-btn" onclick="toggleScreenLock(); return false;">Lock</a>`);
 
 map.once("locationfound", function(e) {
   map.fitBounds(e.bounds, {maxZoom: 18});
+});
+
+map.on("click", function(e) {
+  layers.select.clearLayers();
 });
 
 const layers = {
@@ -68,6 +72,9 @@ L.Control.AddFile = L.Control.extend({
         <i id='loading-icon' class='fas fa-map-marked-alt'></i>
       </a>
     `;
+    L.DomEvent.on(div, "click", function (e) {
+      L.DomEvent.stopPropagation(e);
+    });
     return div
   }
 });
@@ -142,6 +149,7 @@ function loadVector(file, name, format) {
     }
 
     const layer = L.geoJSON(geojson, {
+      bubblingMouseEvents: false,
       style: function (feature) {
         return {
           color: feature.properties["stroke"] ? feature.properties["stroke"] : "red",
@@ -161,7 +169,7 @@ function loadVector(file, name, format) {
         }
       },
       onEachFeature: function (feature, layer) {
-        let table = "<div style='overflow:auto;'><table>";
+        let table = "<table class='table table-striped table-bordered table-sm' style='margin-bottom: 0px;'>";
         
         if (feature && feature.geometry) {
           if (feature.geometry.type.includes("LineString")) {
@@ -180,21 +188,16 @@ function loadVector(file, name, format) {
           }
         }
 
-        const hiddenProps = ["styleUrl", "styleHash", "styleMapHash", "stroke", "stroke-opacity", "stroke-width", "opacity", "fill", "fill-opacity", "icon", "scale", "coordTimes"];
+        feature.properties["_id_"] = L.Util.stamp(layer);
+
+        const hiddenProps = ["styleUrl", "styleHash", "styleMapHash", "stroke", "stroke-opacity", "stroke-width", "opacity", "fill", "fill-opacity", "icon", "scale", "coordTimes", "_id_"];
         for (const key in feature.properties) {
           if (feature.properties.hasOwnProperty(key) && hiddenProps.indexOf(key) == -1) {
             table += "<tr><th>" + key.toUpperCase() + "</th><td>" + formatProperty(feature.properties[key]) + "</td></tr>";
           }
         }
-        table += "</table></div>";
-        layer.bindPopup(table, {
-          maxHeight: 300,
-          maxWidth: 250
-        });
+        table += "</table>";
         layer.on({
-          popupclose: function (e) {
-            layers.select.clearLayers();
-          },
           click: function (e) {
             layers.select.clearLayers();
             layers.select.addLayer(L.geoJSON(layer.toGeoJSON(), {
@@ -208,7 +211,10 @@ function loadVector(file, name, format) {
                   color: "#00FFFF"
                 }); 
               }
-            }))
+            }));
+
+            $("#feature-info").html(table);
+            $("#featureModal").modal("show");
           }
         });
       }
@@ -251,6 +257,9 @@ function addLayer(layer, name) {
       <span style="display: ${layer instanceof L.GeoJSON ? 'none' : 'unset'}">
         <a class="layer-btn" href="#" title="Change opacity" onclick="changeOpacity(${L.Util.stamp(layer)}); return false;"><i class="fas fa-adjust"></i></a>
       </span>
+      <span style="display: ${layer instanceof L.TileLayer.MBTiles ? 'none' : 'unset'}">
+        <a class="layer-btn" href="#" title="Feature table" onclick="showTable(${L.Util.stamp(layer)}, '${name}'); return false;"><i class="fas fa-table"></i></a>
+      </span>
       <a class="layer-btn" href="#" title="Zoom to layer" onclick="zoomToLayer(${L.Util.stamp(layer)}); return false;"><i class="fas fa-expand-arrows-alt"></i></a>
       <a class="layer-btn" href="#" title="Remove layer" onclick="removeLayer(${L.Util.stamp(layer)}, '${name}'); return false;"><i class="fas fa-trash" style="color: red"></i></a>
     </span>
@@ -267,7 +276,7 @@ function zoomToLayer(id) {
     map.fitBounds(layer.options.bounds);
   }
   else {
-    map.fitBounds(layer.getBounds());
+    map.fitBounds(layer.getBounds(), {padding: [20, 20]});
   }
 }
 
@@ -295,6 +304,93 @@ function changeOpacity(id) {
     layer.setOpacity(1);
   }
 }
+
+let tableLayer = null;
+function showTable(id, name) {
+  $("#layer-name").html(name);
+  if (tableLayer && tableLayer == id) {
+    $("#featureTable").modal("show");
+  } else {
+    tableLayer = id;
+    let columns = [];
+    let data = [];
+    
+    const layer = layers.overlays[id];
+    const features = layer.toGeoJSON().features;
+  
+    $.each(features, function(index, feature) {
+      data.push(feature.properties);
+      $.each(feature.properties, function(index, prop) {
+        if (columns.indexOf(index) === -1) {
+          columns.push(index);
+        }
+      });
+    });
+  
+    columns = columns.map(function(column) {
+      return ({
+        field: column,
+        title: column.toUpperCase().replace(/_/g, " "),
+        sortable: true,
+        align: "left",
+        valign: "middle",
+        visible: (column == "_id_") ? false : true,
+        formatter: formatProperty
+      });
+    });
+  
+    $("#features-table").bootstrapTable("destroy");
+    $("#features-table").bootstrapTable({
+      cache: false,
+      classes: "table table-bordered table-sm table-striped",
+      buttonsClass: "light",
+      height: $("#map").height() - 150,
+      undefinedText: "",
+      striped: true,
+      pagination: false,
+      minimumCountColumns: 1,
+      search: true,
+      trimOnSearch: false,
+      searchAlign: "left",
+      showColumns: true,
+      showToggle: false,
+      buttonsAlign: "right",
+      columns: columns,
+      data: data,
+      onClickRow: function(row, $element) {
+        const feature = layer._layers[row["_id_"]];
+        layers.select.clearLayers();
+        layers.select.addLayer(L.geoJSON(feature.toGeoJSON(), {
+          style: {
+            color: "#00FFFF",
+            weight: 5
+          },
+          pointToLayer: function (feature, latlng) {
+            return L.circleMarker(latlng, {
+              radius: 6,
+              color: "#00FFFF"
+            }); 
+          }
+        }));
+        map.fitBounds(layers.select.getBounds(), {
+          maxZoom: 18,
+          padding: [20, 20]
+        });
+        $("#featureTable").modal("hide");
+      },
+      onDblClickRow: function(row) {
+      },
+      onSearch: function(text) {
+      }
+    });
+  
+    $("#featureTable").modal("show"); 
+  }
+}
+
+$("#featureTable").on("shown.bs.modal", function () {
+  $("#features-table").bootstrapTable("resetView");
+})
 
 function formatProperty(value) {
   if (typeof value == "string" && value.startsWith("http")) {
@@ -325,11 +421,6 @@ function goOffline() {
       map.removeLayer(layers.basemaps[layer]);
     }
   }
-}
-
-function showHelp() {
-  const info = "Welcome to GPS Map, an offline capable map viewer with GPS integration!\n\nTap the crosshairs button to locate, zoom to, and follow your GPS location.\n\nTap the map/marker button to load an MBTiles, GeoJSON, KML, or GPX file directly from your device.\n\nTap the layers button to view online basemaps and manage offline layers.\n\nDeveloped by Bryan McBride - mcbride.bryan@gmail.com";
-  alert(info);
 }
 
 // Drag and drop files
