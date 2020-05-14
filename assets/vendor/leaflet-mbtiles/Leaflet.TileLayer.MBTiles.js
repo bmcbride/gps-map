@@ -18,7 +18,7 @@ L.TileLayer.MBTiles = L.TileLayer.extend({
 			}).then(buffer => {
 				const layer = this;
 				initSqlJs().then(function(SQL){
-					layer._openDB(buffer);
+					layer._openDB(buffer, SQL);
 				});
 			}).catch(err => {
 				this.fire('databaseerror', {
@@ -28,7 +28,7 @@ L.TileLayer.MBTiles = L.TileLayer.extend({
 		} else if (url instanceof ArrayBuffer) {
 			const layer = this;
 			initSqlJs().then(function(SQL){
-				layer._openDB(url);
+				layer._openDB(url, SQL);
 			});
 		} else {
 			this.fire('databaseerror');
@@ -37,7 +37,7 @@ L.TileLayer.MBTiles = L.TileLayer.extend({
 		return L.TileLayer.prototype.initialize.call(this, url, options);
 	},
 
-	_openDB: function (buffer) {
+	_openDB: function (buffer, SQL) {
 		try {
 			this._db = new SQL.Database(new Uint8Array(buffer));
 			this._stmt = this._db.prepare('SELECT tile_data FROM tiles WHERE zoom_level = :z AND tile_column = :x AND tile_row = :y');

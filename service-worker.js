@@ -10,7 +10,7 @@
  See the License for the specific language governing permissions and
  limitations under the License.
 */
-const PRECACHE = 'precache-03.10.20.1';
+const PRECACHE = 'precache-05.14.20.1';
 const RUNTIME = 'runtime';
 
 // A list of local resources we always want to be cached.
@@ -44,8 +44,8 @@ const PRECACHE_URLS = [
   'assets/vendor/fontawesome-free-5.12.1-web/css/all.min.css',
   'assets/vendor/fontawesome-free-5.12.1-web/webfonts/fa-solid-900.ttf',
   'assets/vendor/fontawesome-free-5.12.1-web/webfonts/fa-solid-900.woff2',
-  'assets/vendor/sqljs-1.1.0/sql-wasm.js',
-  'assets/vendor/sqljs-1.1.0/sql-wasm.wasm',
+  'assets/vendor/sqljs-1.2.2/sql-wasm.js',
+  'assets/vendor/sqljs-1.2.2/sql-wasm.wasm',
   'assets/css/app.css',
   'assets/js/app.js'
 ];

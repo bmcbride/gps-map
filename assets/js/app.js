@@ -7,7 +7,7 @@ const map = L.map("map", {
     tolerance: 10
   })
 }).fitWorld();
-map.attributionControl.setPrefix(`<a href="#" data-toggle="modal" data-target="#helpModal">Help</a> | <a href="#" id="lock-btn" onclick="toggleScreenLock(); return false;">Lock</a>`);
+map.attributionControl.setPrefix(`<a href="#" data-toggle="modal" data-target="#helpModal">Help</a>`);
 
 map.once("locationfound", function(e) {
   map.fitBounds(e.bounds, {maxZoom: 18});
@@ -446,40 +446,13 @@ dropArea.addEventListener("drop", function(e) {
   handleFile(file);
 }, false);
 
-// Experimental screen locking
-let wakeLock = null;
-
-const requestWakeLock = async () => {
-  try {
-    wakeLock = await navigator.wakeLock.request("screen");
-    wakeLock.addEventListener("release", () => {
-      console.log("Wake Lock was released");
-      document.getElementById("lock-btn").style.color = "";
-    });
-    console.log("Wake Lock is active");
-    document.getElementById("lock-btn").style.color = "red";
-  } catch (e) {
-    console.error(`${e.name}, ${e.message}`);
-  }
-};
-
-function toggleScreenLock() {
-  if (confirm("Keep screen awake?")) {
-    requestWakeLock();
-  } else {
-    if (wakeLock) {
-      wakeLock.release();
-    }
-  }
-}
-
 window.addEventListener("offline",  function(e) {
   goOffline();
 });
 
 initSqlJs({
   locateFile: function() {
-    return "assets/vendor/sqljs-1.1.0/sql-wasm.wasm";
+    return "assets/vendor/sqljs-1.2.2/sql-wasm.wasm";
   }
 }).then(function(SQL){
   navigator.onLine ? null : goOffline();
