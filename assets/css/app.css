@@ -13,6 +13,9 @@ html, body, #map {
 #featureTable table tr {
   cursor: pointer;
 }
+.leaflet-control-layers {
+  overflow: auto;
+}
 .leaflet-control-layers label {
   font-weight: normal;
   margin-bottom: 0px;
@@ -23,9 +26,9 @@ html, body, #map {
 .leaflet-control-layers-overlays label div input {
   float: left;
 }
-.layer-name {
+/* .layer-name {
   float: left;
-}
+} */
 .layer-buttons {
   float: right;
 }

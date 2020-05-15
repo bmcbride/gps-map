@@ -114,6 +114,10 @@ const controls = {
 
   fileCtrl: L.control.addfile({
     position: "topleft"
+  }).addTo(map),
+
+  scaleCtrl: L.control.scale({
+    position: "bottomleft"
   }).addTo(map)
 };
 
@@ -456,6 +460,8 @@ initSqlJs({
   }
 }).then(function(SQL){
   navigator.onLine ? null : goOffline();
+  $(".leaflet-control-layers").css("max-height", ($("#map").height() * .75));
+  $(".leaflet-control-layers").css("max-width", ($("#map").width() * .75));
 });
 
 controls.locateCtrl.start();
