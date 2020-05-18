@@ -291,6 +291,9 @@ function removeLayer(id, name) {
     if (!map.hasLayer(layer)) {
       map.addLayer(layers.overlays[id]);
     }
+    if (layer instanceof L.TileLayer.MBTiles) {
+      layer._db.close(); 
+    }
     map.removeLayer(layer);
     controls.layerCtrl.removeLayer(layer);
   }
