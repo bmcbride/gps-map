@@ -459,7 +459,7 @@ window.addEventListener("offline",  function(e) {
 
 initSqlJs({
   locateFile: function() {
-    return "assets/vendor/sqljs-1.2.2/sql-wasm.wasm";
+    return "assets/vendor/sqljs-1.3.0/sql-wasm.wasm";
   }
 }).then(function(SQL){
   navigator.onLine ? null : goOffline();
