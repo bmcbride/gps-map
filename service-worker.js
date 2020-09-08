@@ -10,7 +10,7 @@
  See the License for the specific language governing permissions and
  limitations under the License.
 */
-const PRECACHE = 'precache-06.23.20.1';
+const PRECACHE = 'precache-09.07.20.1';
 const RUNTIME = 'runtime';
 
 // A list of local resources we always want to be cached.
@@ -23,24 +23,24 @@ const PRECACHE_URLS = [
   'assets/img/favicon-16x16.png',
   'assets/img/favicon-512x512.png',
   'assets/img/favicon-192x192.png',
-  'assets/vendor/leaflet-1.6.0/images/layers.png',
-  'assets/vendor/leaflet-1.6.0/images/layers-2x.png',
-  'assets/vendor/leaflet-1.6.0/images/marker-icon.png',
-  'assets/vendor/leaflet-1.6.0/images/marker-icon-2x.png',
-  'assets/vendor/leaflet-1.6.0/images/marker-shadow.png',
-  'assets/vendor/leaflet-1.6.0/leaflet.css',
-  'assets/vendor/leaflet-1.6.0/leaflet.js',
-  'assets/vendor/leaflet-locatecontrol-0.70.0/L.Control.Locate.min.css',
-  'assets/vendor/leaflet-locatecontrol-0.70.0/L.Control.Locate.min.js',
+  'assets/vendor/leaflet-1.7.1/images/layers.png',
+  'assets/vendor/leaflet-1.7.1/images/layers-2x.png',
+  'assets/vendor/leaflet-1.7.1/images/marker-icon.png',
+  'assets/vendor/leaflet-1.7.1/images/marker-icon-2x.png',
+  'assets/vendor/leaflet-1.7.1/images/marker-shadow.png',
+  'assets/vendor/leaflet-1.7.1/leaflet.css',
+  'assets/vendor/leaflet-1.7.1/leaflet.js',
+  'assets/vendor/leaflet-locatecontrol-0.72.1/L.Control.Locate.min.css',
+  'assets/vendor/leaflet-locatecontrol-0.72.1/L.Control.Locate.min.js',
   'assets/vendor/leaflet-mbtiles/Leaflet.TileLayer.MBTiles.js',
   'assets/vendor/togeojson-0.16.0/togeojson.js',
   'assets/vendor/turf-5.1.6/turf-area-length.min.js',
   'assets/vendor/jquery-3.5.1.slim.min.js',
   'assets/vendor/popper-1.16.0/popper.min.js',
-  'assets/vendor/bootstrap-4.5.0/css/bootstrap.min.css',
-  'assets/vendor/bootstrap-4.5.0/js/bootstrap.min.js',
-  'assets/vendor/bootstrap-table-1.16.0/bootstrap-table.min.css',
-  'assets/vendor/bootstrap-table-1.16.0/bootstrap-table.min.js',
+  'assets/vendor/bootstrap-4.5.2/css/bootstrap.min.css',
+  'assets/vendor/bootstrap-4.5.2/js/bootstrap.min.js',
+  'assets/vendor/bootstrap-table-1.17.1/bootstrap-table.min.css',
+  'assets/vendor/bootstrap-table-1.17.1/bootstrap-table.min.js',
   'assets/vendor/fontawesome-free-5.12.1-web/css/all.min.css',
   'assets/vendor/fontawesome-free-5.12.1-web/webfonts/fa-solid-900.ttf',
   'assets/vendor/fontawesome-free-5.12.1-web/webfonts/fa-solid-900.woff2',
