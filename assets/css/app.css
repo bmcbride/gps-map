@@ -3,15 +3,23 @@ html, body, #map {
   width: 100%;
   margin: 0;
 }
-#featureModal .modal-body {
+table {
+  border-collapse: collapse;
+  border-bottom: 1px solid #ccc;
+}
+table th, td {
+  border: 1px solid #ccc;
   padding: 5px;
-  overflow: auto;
 }
-#featureTable .modal-body {
-  padding: 0px 5px 5px 5px;
+table tr:nth-child(even) {
+  background-color: #f7f7f7;
 }
-#featureTable table tr {
-  cursor: pointer;
+.leaflet-popup-content-wrapper {
+  padding: 1px;
+  border-radius: 5px;
+}
+.leaflet-popup-content {
+  margin: 5px;
 }
 .leaflet-control-layers {
   overflow: auto;
@@ -20,15 +28,14 @@ html, body, #map {
   font-weight: normal;
   margin-bottom: 0px;
 }
-.leaflet-control-layers-list input[type="radio"], input[type="checkbox"] {
+/* .leaflet-control-layers-list input[type="radio"], input[type="checkbox"] {
   margin: 2px;
-}
-.leaflet-control-layers-overlays label div input {
-  float: left;
-}
-/* .layer-name {
-  float: left;
 } */
+.layer-name {
+  display: inline-flex;
+  max-width: 65%;
+  overflow: auto;
+}
 .layer-buttons {
   float: right;
 }

@@ -7,7 +7,7 @@ const map = L.map("map", {
     tolerance: 10
   })
 }).fitWorld();
-map.attributionControl.setPrefix(`<a href="#" data-toggle="modal" data-target="#helpModal">Help</a>`);
+map.attributionControl.setPrefix("<a href='#' onclick='showInfo(); return false;'>About</a>");
 
 map.once("locationfound", function(e) {
   map.fitBounds(e.bounds, {maxZoom: 18});
@@ -123,7 +123,6 @@ const controls = {
 
 function handleFile(file) {
   showLoader();
-
   const name = file.name.split(".").slice(0, -1).join(".");
 
   if (file.name.endsWith(".mbtiles")) {
@@ -173,23 +172,13 @@ function loadVector(file, name, format) {
         }
       },
       onEachFeature: function (feature, layer) {
-        let table = "<table class='table table-striped table-bordered table-sm' style='margin-bottom: 0px;'>";
+        let table = "<div style='overflow:auto;'><table>";
         
-        if (feature && feature.geometry) {
-          if (feature.geometry.type.includes("LineString")) {
-            const length = turf.length(layer.toGeoJSON(), {units: "miles"});
-            table += `<tr><th>LENGTH</th><td>${length.toFixed(1)} Miles</td></tr>`;
-          } else if (feature.geometry.type === "Polygon") {
-            const sqMeters = turf.area(layer.toGeoJSON());
-            const acres = (sqMeters / 4046.86);
-            const area = (acres < 640) ? (acres.toFixed(1) + " Acres") : ((sqMeters / 2589990).toFixed(1) + " Sq. Miles");
-            table += `<tr><th>AREA</th><td>${area}</td></tr>`;
-          } else if (feature.geometry.type === "Point") {
-            const latitude = feature.geometry.coordinates[1].toFixed(6);
-            const longitude = feature.geometry.coordinates[0].toFixed(6);
-            table += `<tr><th>LATITUDE</th><td>${latitude}</td></tr>`;
-            table += `<tr><th>LONGITUDE</th><td>${longitude}</td></tr>`;
-          }
+        if (feature && feature.geometry && feature.geometry.type === "Point") {
+          const latitude = feature.geometry.coordinates[1].toFixed(6);
+          const longitude = feature.geometry.coordinates[0].toFixed(6);
+          table += `<tr><th>LATITUDE</th><td>${latitude}</td></tr>`;
+          table += `<tr><th>LONGITUDE</th><td>${longitude}</td></tr>`;
         }
 
         feature.properties["_id_"] = L.Util.stamp(layer);
@@ -200,8 +189,16 @@ function loadVector(file, name, format) {
             table += "<tr><th>" + key.toUpperCase() + "</th><td>" + formatProperty(feature.properties[key]) + "</td></tr>";
           }
         }
-        table += "</table>";
+        table += "</table></div>";
+        layer.bindPopup(table, {
+          closeButton: false,
+          maxHeight: 300,
+          maxWidth: 250
+        });
         layer.on({
+          popupclose: function (e) {
+            layers.select.clearLayers();
+          },
           click: function (e) {
             layers.select.clearLayers();
             layers.select.addLayer(L.geoJSON(layer.toGeoJSON(), {
@@ -215,10 +212,7 @@ function loadVector(file, name, format) {
                   color: "#00FFFF"
                 }); 
               }
-            }));
-
-            $("#feature-info").html(table);
-            $("#featureModal").modal("show");
+            }))
           }
         });
       }
@@ -260,9 +254,6 @@ function addLayer(layer, name) {
     <span class="layer-buttons">
       <span style="display: ${layer instanceof L.GeoJSON ? 'none' : 'unset'}">
         <a class="layer-btn" href="#" title="Change opacity" onclick="changeOpacity(${L.Util.stamp(layer)}); return false;"><i class="fas fa-adjust"></i></a>
-      </span>
-      <span style="display: ${layer instanceof L.TileLayer.MBTiles ? 'none' : 'unset'}">
-        <a class="layer-btn" href="#" title="Feature table" onclick="showTable(${L.Util.stamp(layer)}, '${name}'); return false;"><i class="fas fa-table"></i></a>
       </span>
       <a class="layer-btn" href="#" title="Zoom to layer" onclick="zoomToLayer(${L.Util.stamp(layer)}); return false;"><i class="fas fa-expand-arrows-alt"></i></a>
       <a class="layer-btn" href="#" title="Remove layer" onclick="removeLayer(${L.Util.stamp(layer)}, '${name}'); return false;"><i class="fas fa-trash" style="color: red"></i></a>
@@ -312,93 +303,6 @@ function changeOpacity(id) {
   }
 }
 
-let tableLayer = null;
-function showTable(id, name) {
-  $("#layer-name").html(name);
-  if (tableLayer && tableLayer == id) {
-    $("#featureTable").modal("show");
-  } else {
-    tableLayer = id;
-    let columns = [];
-    let data = [];
-    
-    const layer = layers.overlays[id];
-    const features = layer.toGeoJSON().features;
-  
-    $.each(features, function(index, feature) {
-      data.push(feature.properties);
-      $.each(feature.properties, function(index, prop) {
-        if (columns.indexOf(index) === -1) {
-          columns.push(index);
-        }
-      });
-    });
-  
-    columns = columns.map(function(column) {
-      return ({
-        field: column,
-        title: column.toUpperCase().replace(/_/g, " "),
-        sortable: true,
-        align: "left",
-        valign: "middle",
-        visible: (column == "_id_") ? false : true,
-        formatter: formatProperty
-      });
-    });
-  
-    $("#features-table").bootstrapTable("destroy");
-    $("#features-table").bootstrapTable({
-      cache: false,
-      classes: "table table-bordered table-sm table-striped",
-      buttonsClass: "light",
-      height: $("#map").height() - 150,
-      undefinedText: "",
-      striped: true,
-      pagination: false,
-      minimumCountColumns: 1,
-      search: true,
-      trimOnSearch: false,
-      searchAlign: "left",
-      showColumns: true,
-      showToggle: false,
-      buttonsAlign: "right",
-      columns: columns,
-      data: data,
-      onClickRow: function(row, $element) {
-        const feature = layer._layers[row["_id_"]];
-        layers.select.clearLayers();
-        layers.select.addLayer(L.geoJSON(feature.toGeoJSON(), {
-          style: {
-            color: "#00FFFF",
-            weight: 5
-          },
-          pointToLayer: function (feature, latlng) {
-            return L.circleMarker(latlng, {
-              radius: 6,
-              color: "#00FFFF"
-            }); 
-          }
-        }));
-        map.fitBounds(layers.select.getBounds(), {
-          maxZoom: 18,
-          padding: [20, 20]
-        });
-        $("#featureTable").modal("hide");
-      },
-      onDblClickRow: function(row) {
-      },
-      onSearch: function(text) {
-      }
-    });
-  
-    $("#featureTable").modal("show"); 
-  }
-}
-
-$("#featureTable").on("shown.bs.modal", function () {
-  $("#features-table").bootstrapTable("resetView");
-})
-
 function formatProperty(value) {
   if (typeof value == "string" && value.startsWith("http")) {
     return `<a href="${value}" target="_blank">${value}</a>`;
@@ -428,6 +332,10 @@ function goOffline() {
       map.removeLayer(layers.basemaps[layer]);
     }
   }
+}
+
+function showInfo() {
+  alert("- Welcome to GPSMap.app, an offline capable map viewer with GPS integration!\n- Tap the map/marker button to load an MBTiles, GeoJSON, KML, or GPX file directly from your device.\n- Tap the layers button to view online basemaps and manage offline layers.\n\nDeveloped by Bryan McBride - mcbride.bryan@gmail.com");
 }
 
 // Drag and drop files
@@ -463,8 +371,8 @@ initSqlJs({
   }
 }).then(function(SQL){
   navigator.onLine ? null : goOffline();
-  $(".leaflet-control-layers").css("max-height", ($("#map").height() * .75));
-  $(".leaflet-control-layers").css("max-width", ($("#map").width() * .75));
+  document.getElementsByClassName("leaflet-control-layers")[0].style.maxHeight = `${(document.getElementById("map").offsetHeight * .75)}px`;
+  document.getElementsByClassName("leaflet-control-layers")[0].style.maxWidth = `${(document.getElementById("map").offsetWidth * .75)}px`;
 });
 
 controls.locateCtrl.start();
