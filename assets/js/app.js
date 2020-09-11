@@ -96,7 +96,7 @@ const controls = {
     cacheLocation: true,
     position: "topleft",
     flyTo: false,
-    keepCurrentZoomLevel: false,
+    keepCurrentZoomLevel: true,
     circleStyle: {
       interactive: false
     },
@@ -131,7 +131,7 @@ function handleFile(file) {
     const format = file.name.split(".").pop();
     loadVector(file, name, format);
   } else {
-    alert("MBTiles, GeoJSON, KML, and GPX files supported.");
+    vex.dialog.alert("MBTiles, GeoJSON, KML, and GPX files supported.");
     hideLoader();
   }
 }
@@ -256,7 +256,7 @@ function addLayer(layer, name) {
         <a class="layer-btn" href="#" title="Change opacity" onclick="changeOpacity(${L.Util.stamp(layer)}); return false;"><i class="fas fa-adjust"></i></a>
       </span>
       <a class="layer-btn" href="#" title="Zoom to layer" onclick="zoomToLayer(${L.Util.stamp(layer)}); return false;"><i class="fas fa-expand-arrows-alt"></i></a>
-      <a class="layer-btn" href="#" title="Remove layer" onclick="removeLayer(${L.Util.stamp(layer)}, '${name}'); return false;"><i class="fas fa-trash" style="color: red"></i></a>
+      <a class="layer-btn" href="#" title="Remove layer" onclick="removeLayer(${L.Util.stamp(layer)}, '${name}', 'overlays'); return false;"><i class="fas fa-trash" style="color: red"></i></a>
     </span>
     <div style="clear: both;"></div>
   `);
@@ -275,19 +275,36 @@ function zoomToLayer(id) {
   }
 }
 
-function removeLayer(id, name) {
-  const cfm = confirm(`Remove ${name}?`);
-  if (cfm == true) {
-    const layer = layers.overlays[id];
-    if (!map.hasLayer(layer)) {
-      map.addLayer(layers.overlays[id]);
+function removeLayer(id, name, type, basemapID) {
+  vex.dialog.confirm({
+    message: `Remove ${name}?`,
+    callback: function (value) {
+      if (value == true) {
+        const layer = layers[type][id];
+        if (!map.hasLayer(layer)) {
+          map.addLayer(layers[type][id]);
+        }
+        if (layer instanceof L.TileLayer.MBTiles) {
+          layer._db.close(); 
+        }
+        map.removeLayer(layer);
+        controls.layerCtrl.removeLayer(layer);
+
+        if (type == "basemaps") {
+          let basemaps = localStorage.getItem("basemaps");
+          if (basemaps) {
+            basemaps = JSON.parse(basemaps);
+            basemaps.forEach((element, index) => {
+              if (element.id == basemapID) {
+                basemaps.splice(index, 1);
+              }
+            });
+            localStorage.setItem("basemaps", JSON.stringify(basemaps));
+          }
+        }
+      }
     }
-    if (layer instanceof L.TileLayer.MBTiles) {
-      layer._db.close(); 
-    }
-    map.removeLayer(layer);
-    controls.layerCtrl.removeLayer(layer);
-  }
+  })
 }
 
 function changeOpacity(id) {
@@ -323,10 +340,10 @@ function hideLoader() {
   loadingIcon.classList.add("fa-map-marked-alt");
 }
 
-function goOffline() {
+function switchBaseLayer(name) {
   const basemaps = Object.keys(layers.basemaps);
   for (const layer of basemaps) {
-    if (layer == "None") {
+    if (layer == name) {
       map.addLayer(layers.basemaps[layer]);
     } else {
       map.removeLayer(layers.basemaps[layer]);
@@ -335,7 +352,118 @@ function goOffline() {
 }
 
 function showInfo() {
-  alert("- Welcome to GPSMap.app, an offline capable map viewer with GPS integration!\n- Tap the map/marker button to load an MBTiles, GeoJSON, KML, or GPX file directly from your device.\n- Tap the layers button to view online basemaps and manage offline layers.\n\nDeveloped by Bryan McBride - mcbride.bryan@gmail.com");
+  vex.dialog.alert({ unsafeMessage: `
+    <p>Welcome to <strong>GPSMap.app</strong>, an offline capable map viewer with GPS integration!</p>
+    <p>Tap the map/marker button to load an MBTiles, GeoJSON, KML, or GPX file directly from your device.</p>
+    <p>Tap the layers button to view online basemaps and manage offline layers.</p>
+    <p>Tap <a href="#" onclick="basemapInput(); return false;">here</a> to save custom online basemaps.</p>
+    <p>Developed by Bryan McBride - mcbride.bryan@gmail.com</p>
+  `});
+}
+
+function basemapInput() {
+  vex.closeTop();
+  vex.dialog.open({
+    message: "Enter basemap information below:",
+    input: [
+      "<input name='name' type='text' placeholder='Name' required />",
+      "<input name='url' type='text' placeholder='URL' required />",
+      `<select name='type' id='basemap-type'>
+        <option value='xyz'>XYZ</option>
+        <option value='wms'>WMS</option>
+      </select>`,
+      "<input name='layers' id='wms-layers' type='text' placeholder='WMS Layer(s)' style='display: none;' />",
+    ].join(''),
+    buttons: [{
+      type: "submit",
+      text: "OK",
+      className: "vex-dialog-button-primary"
+    }, {
+      type: "button",
+      text: "Cancel",
+      className: "vex-dialog-button-secondary",
+      click: function(e) {
+        this.close();
+      }
+    }],
+    callback: function (data) {
+      if (data) {
+        let basemaps = localStorage.getItem("basemaps");
+        if (basemaps) {
+          basemaps = JSON.parse(basemaps);
+        } else {
+          basemaps = [];
+        }
+        data.id = Date.now();
+        basemaps.push({
+          "id": data.id,
+          "name": data.name,
+          "url": data.url,
+          "type": data.type,
+          "layers": data.layers
+        });
+        localStorage.setItem("basemaps", JSON.stringify(basemaps));
+        addBasemap(data.name, data.url, data.id, data.type, data.layers, true);
+      }
+    },
+    afterOpen: function() {
+      const typeEl = document.getElementById("basemap-type");
+      const layersEl = document.getElementById("wms-layers");
+      L.DomEvent.on(typeEl, "change", function (e) {
+        if (typeEl.value == "wms") {
+          layersEl.style.display = "";
+          layersEl.required = true;
+        } else {
+          layersEl.style.display = "none";
+          layersEl.required = false;
+        }
+      });
+    }
+  })
+}
+
+function addBasemap(name, url, id, type, wmsLayers, active) {
+  let layer = null;
+  if (type == "wms") {
+    layer = L.tileLayer.wms(url, {
+      maxNativeZoom: 18,
+      maxZoom: map.getMaxZoom(),
+      layers: wmsLayers,
+      format: "image/png"
+    });
+  } else {
+   layer = L.tileLayer(url, {
+      maxNativeZoom: 18,
+      maxZoom: map.getMaxZoom()
+    }); 
+  }
+
+  controls.layerCtrl.addBaseLayer(layer, `
+    <span class="layer-name" id="${L.Util.stamp(layer)}">
+      ${name}
+    </span>
+    <span class="layer-buttons">
+      <a class="layer-btn" href="#" title="Remove layer" onclick="removeLayer(${L.Util.stamp(layer)}, '${name}', 'basemaps', ${id}); return false;"><i class="fas fa-trash" style="color: red"></i></a>
+    </span>
+    <div style="clear: both;"></div>
+  `);
+
+  if (active) {
+    switchBaseLayer(null);
+    layer.addTo(map);  
+  }
+  
+  layers.basemaps[L.Util.stamp(layer)] = layer;
+}
+
+function loadBasemaps() {
+  let basemaps = localStorage.getItem("basemaps");
+  if (basemaps) {
+    basemaps = JSON.parse(basemaps);
+    basemaps.forEach(element => {
+      addBasemap(element.name, element.url, element.id, element.type, element.layers, false);
+    });
+  }
 }
 
 // Drag and drop files
@@ -362,7 +490,7 @@ dropArea.addEventListener("drop", function(e) {
 }, false);
 
 window.addEventListener("offline",  function(e) {
-  goOffline();
+  switchBaseLayer("None");
 });
 
 initSqlJs({
@@ -370,9 +498,11 @@ initSqlJs({
     return "assets/vendor/sqljs-1.3.0/sql-wasm.wasm";
   }
 }).then(function(SQL){
-  navigator.onLine ? null : goOffline();
+  vex.defaultOptions.className = "vex-theme-top";
+  navigator.onLine ? null : switchBaseLayer("None");
   document.getElementsByClassName("leaflet-control-layers")[0].style.maxHeight = `${(document.getElementById("map").offsetHeight * .75)}px`;
   document.getElementsByClassName("leaflet-control-layers")[0].style.maxWidth = `${(document.getElementById("map").offsetWidth * .75)}px`;
 });
 
+loadBasemaps();
 controls.locateCtrl.start();

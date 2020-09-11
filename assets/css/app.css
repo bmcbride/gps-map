@@ -14,6 +14,9 @@ table th, td {
 table tr:nth-child(even) {
   background-color: #f7f7f7;
 }
+/* .vex {
+  margin: 15px;
+} */
 .leaflet-popup-content-wrapper {
   padding: 1px;
   border-radius: 5px;
