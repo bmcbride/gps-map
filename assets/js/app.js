@@ -101,7 +101,11 @@ const controls = {
       interactive: false
     },
     markerStyle: {
-      interactive: false
+      interactive: true
+    },
+    metric: false,
+    strings: {
+      popup: "You are within {distance} {unit} from this point"
     },
     locateOptions: {
       enableHighAccuracy: true,
