@@ -6,8 +6,8 @@ workbox.setConfig({
 });
 
 workbox.precaching.precacheAndRoute([
-  {url: 'index.html', revision: '09.11.20.1'},
-  {url: './', revision: '09.11.20.1'}, // Alias for index.html
+  {url: 'index.html', revision: '09.15.20.1'},
+  {url: './', revision: '09.15.20.1'}, // Alias for index.html
   {url: 'manifest.json', revision: '09.09.20.1'},
   {url: 'assets/img/apple-touch-icon.png', revision: '09.09.20.1'},
   {url: 'assets/img/favicon-32x32.png', revision: '09.09.20.1'},
@@ -29,7 +29,8 @@ workbox.precaching.precacheAndRoute([
   {url: 'assets/vendor/leaflet-locatecontrol-0.72.1/L.Control.Locate.min.js', revision: '09.09.20.1'},
   {url: 'assets/vendor/leaflet-mbtiles/Leaflet.TileLayer.MBTiles.js', revision: '09.09.20.1'},
   {url: 'assets/vendor/togeojson-0.16.0/togeojson.js', revision: '09.09.20.1'},
+  {url: 'assets/vendor/leaflet-simplestyle-1.2.3/leaflet-simplestyle.min.js', revision: '09.15.20.1'},
   {url: 'assets/vendor/vex-4.1.0/js/vex.combined.min.js', revision: '09.09.20.1'},
-  {url: 'assets/js/app.js', revision: '09.11.20.1'},
+  {url: 'assets/js/app.js', revision: '09.15.20.1'},
   {url: 'assets/css/app.css', revision: '09.11.20.1'}
 ]);

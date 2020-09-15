@@ -157,24 +157,7 @@ function loadVector(file, name, format) {
 
     const layer = L.geoJSON(geojson, {
       bubblingMouseEvents: false,
-      style: function (feature) {
-        return {
-          color: feature.properties["stroke"] ? feature.properties["stroke"] : "red",
-          opacity: feature.properties["stroke-opacity"] ? feature.properties["stroke-opacity"] : 1.0,
-          weight: feature.properties["stroke-width"] ? feature.properties["stroke-width"] : 3,
-          fillColor: feature.properties["fill"] ? feature.properties["fill"] : "red",
-          fillOpacity: feature.properties["fill-opacity"] ? feature.properties["fill-opacity"] : 0.2,
-        };
-      },
-      pointToLayer: function (feature, latlng) {
-        if (format == "kml") {
-          return L.circleMarker(latlng, {
-            radius: 6
-          }); 
-        } else {
-          return L.marker(latlng);
-        }
-      },
+      useSimpleStyle: true,
       onEachFeature: function (feature, layer) {
         let table = "<div style='overflow:auto;'><table>";
         
@@ -187,7 +170,7 @@ function loadVector(file, name, format) {
 
         feature.properties["_id_"] = L.Util.stamp(layer);
 
-        const hiddenProps = ["styleUrl", "styleHash", "styleMapHash", "stroke", "stroke-opacity", "stroke-width", "opacity", "fill", "fill-opacity", "icon", "scale", "coordTimes", "_id_"];
+        const hiddenProps = ["styleUrl", "styleHash", "styleMapHash", "stroke", "stroke-opacity", "stroke-width", "opacity", "fill", "fill-opacity", "icon", "scale", "coordTimes", "marker-size", "marker-color", "marker-symbol", "_id_"];
         for (const key in feature.properties) {
           if (feature.properties.hasOwnProperty(key) && hiddenProps.indexOf(key) == -1) {
             table += "<tr><th>" + key.toUpperCase() + "</th><td>" + formatProperty(feature.properties[key]) + "</td></tr>";
