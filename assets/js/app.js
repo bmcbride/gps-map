@@ -105,7 +105,10 @@ const controls = {
     },
     metric: false,
     strings: {
-      popup: "You are within {distance} {unit} from this point"
+      popup: function(options) {
+        const loc = controls.locateCtrl._marker.getLatLng();
+        return `<div style="text-align: center;">You are within ${Number(options.distance).toLocaleString()} ${options.unit}<br>from <strong>${loc.lat.toFixed(6)}</strong>, <strong>${loc.lng.toFixed(6)}</strong></div>`;
+      }
     },
     locateOptions: {
       enableHighAccuracy: true,

@@ -17,6 +17,9 @@ table tr:nth-child(even) {
 /* .vex {
   margin: 15px;
 } */
+.leaflet-popup-close-button {
+  display: none;
+}
 .leaflet-popup-content-wrapper {
   padding: 1px;
   border-radius: 5px;
