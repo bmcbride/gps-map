@@ -105,10 +105,7 @@ const controls = {
     },
     metric: false,
     strings: {
-      popup: function(options) {
-        const loc = controls.locateCtrl._marker.getLatLng();
-        return `<div style="text-align: center;">You are within ${Number(options.distance).toLocaleString()} ${options.unit}<br>from <strong>${loc.lat.toFixed(6)}</strong>, <strong>${loc.lng.toFixed(6)}</strong></div>`;
-      }
+      popup: "You are within {distance} {unit} from this point"
     },
     locateOptions: {
       enableHighAccuracy: true,
@@ -242,9 +239,7 @@ function addLayer(layer, name) {
       ${name}
     </span>
     <span class="layer-buttons">
-      <span style="display: ${layer instanceof L.GeoJSON ? 'none' : 'unset'}">
-        <a class="layer-btn" href="#" title="Change opacity" onclick="changeOpacity(${L.Util.stamp(layer)}); return false;"><i class="fas fa-adjust"></i></a>
-      </span>
+      <a class="layer-btn" href="#" title="Change opacity" onclick="changeOpacity(${L.Util.stamp(layer)}); return false;"><i class="fas fa-adjust"></i></a>
       <a class="layer-btn" href="#" title="Zoom to layer" onclick="zoomToLayer(${L.Util.stamp(layer)}); return false;"><i class="fas fa-expand-arrows-alt"></i></a>
       <a class="layer-btn" href="#" title="Remove layer" onclick="removeLayer(${L.Util.stamp(layer)}, '${name}', 'overlays'); return false;"><i class="fas fa-trash" style="color: red"></i></a>
     </span>
@@ -302,11 +297,24 @@ function changeOpacity(id) {
   if (!map.hasLayer(layer)) {
     map.addLayer(layers.overlays[id]);
   }
-  let value = layer.options.opacity;
-  if (value > 0.2) {
-    layer.setOpacity((value-0.2).toFixed(1));  
-  } else {
-    layer.setOpacity(1);
+  if (layer instanceof L.TileLayer.MBTiles) {
+    let value = layer.options.opacity;
+    if (value > 0.2) {
+      layer.setOpacity((value-0.2).toFixed(1));
+    } else {
+      layer.setOpacity(1);
+    }
+  } else if (layer instanceof L.GeoJSON) {
+    let value = layer.options.opacity ? layer.options.opacity : 1;
+    if (value > 0.2) {
+      layer.options.opacity = (value-0.2).toFixed(1);
+    } else {
+      layer.options.opacity = 1;
+    }
+    layer.setStyle({
+      opacity: layer.options.opacity,
+      fillOpacity: layer.options.opacity
+    });
   }
 }
 
