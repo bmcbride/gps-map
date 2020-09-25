@@ -31,6 +31,6 @@ workbox.precaching.precacheAndRoute([
   {url: 'assets/vendor/togeojson-0.16.0/togeojson.js', revision: '09.09.20.1'},
   {url: 'assets/vendor/leaflet-simplestyle-1.2.3/leaflet-simplestyle.min.js', revision: '09.15.20.1'},
   {url: 'assets/vendor/vex-4.1.0/js/vex.combined.min.js', revision: '09.09.20.1'},
-  {url: 'assets/js/app.js', revision: '09.24.20.1'},
+  {url: 'assets/js/app.js', revision: '09.25.20.1'},
   {url: 'assets/css/app.css', revision: '09.23.20.1'}
 ]);
