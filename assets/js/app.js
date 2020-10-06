@@ -133,7 +133,13 @@ function handleFile(file) {
   const name = file.name.split(".").slice(0, -1).join(".");
 
   if (file.name.endsWith(".mbtiles")) {
-    loadRaster(file, name);
+    initSqlJs({
+      locateFile: function() {
+        return "assets/vendor/sqljs-1.3.0/sql-wasm.wasm";
+      }
+    }).then(function(SQL){
+      loadRaster(file, name);
+    });
   } else if (file.name.endsWith(".geojson") || file.name.endsWith(".kml") || file.name.endsWith(".gpx")) {
     const format = file.name.split(".").pop();
     loadVector(file, name, format);
@@ -564,11 +570,7 @@ window.addEventListener("offline",  function(e) {
   switchBaseLayer("None");
 });
 
-initSqlJs({
-  locateFile: function() {
-    return "assets/vendor/sqljs-1.3.0/sql-wasm.wasm";
-  }
-}).then(function(SQL){
+document.addEventListener("DOMContentLoaded", function(e) { 
   vex.defaultOptions.className = "vex-theme-top";
   navigator.onLine ? null : switchBaseLayer("None");
   document.getElementsByClassName("leaflet-control-layers")[0].style.maxHeight = `${(document.getElementById("map").offsetHeight * .75)}px`;
