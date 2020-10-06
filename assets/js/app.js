@@ -234,7 +234,7 @@ function fetchGeoJSON(name, url, active, key) {
       .then(data => {
         hideLoader();
         createVectorLayer(data, name, url, active, key);
-      }); 
+      });
   } else {
     vex.dialog.alert("Must be online to fetch data!");
   }
@@ -346,7 +346,7 @@ function changeOpacity(id) {
   if (!map.hasLayer(layer)) {
     map.addLayer(layers.overlays[id]);
   }
-  if (layer instanceof L.TileLayer.MBTiles) {
+  if (layer instanceof L.TileLayer.MBTiles || layer instanceof L.ImageOverlay) {
     let value = layer.options.opacity;
     if (value > 0.2) {
       layer.setOpacity((value-0.2).toFixed(1));
