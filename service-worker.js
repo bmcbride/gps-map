@@ -29,7 +29,7 @@ workbox.precaching.precacheAndRoute([
   {url: 'assets/vendor/leaflet-mbtiles/Leaflet.TileLayer.MBTiles.js', revision: '09.09.20.1'},
   {url: 'assets/vendor/togeojson-0.16.0/togeojson.js', revision: '09.09.20.1'},
   {url: 'assets/vendor/vex-4.1.0/js/vex.combined.min.js', revision: '09.09.20.1'},
-  {url: 'assets/js/app.js', revision: '10.21.20.1'},
+  {url: 'assets/js/app.js', revision: '10.21.20.2'},
   {url: 'assets/css/app.css', revision: '10.21.20.1'}
 ], {
   // Ignore all URL parameters.

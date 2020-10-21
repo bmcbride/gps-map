@@ -526,10 +526,8 @@ function addBasemap(name, url, id, type, wmsLayers, active) {
   }
 
   controls.layerCtrl.addBaseLayer(layer, `
-    <span class="layer-name" id="${L.Util.stamp(layer)}">
-      ${name}
-    </span>
-    <span class="layer-buttons">
+    <span>${name}</span>
+    <span style="float: right;">
       <a class="layer-btn" href="#" title="Remove layer" onclick="removeLayer(${L.Util.stamp(layer)}, '${name}', 'basemaps', ${id}); return false;"><i class="fas fa-trash" style="color: red"></i></a>
     </span>
     <div style="clear: both;"></div>
