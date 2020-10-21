@@ -34,19 +34,22 @@ table tr:nth-child(even) {
   font-weight: normal;
   margin-bottom: 0px;
 }
-/* .leaflet-control-layers-list input[type="radio"], input[type="checkbox"] {
+.leaflet-control-layers-list input[type="radio"], input[type="checkbox"] {
   margin: 2px;
-} */
-.layer-name {
+}
+/* .layer-name {
   display: inline-flex;
   max-width: 65%;
   overflow: auto;
-}
+} */
 .layer-buttons {
-  float: right;
+  display: flex;
 }
 .layer-btn {
-  padding-left: 6px;
+  padding-left: 10px;
+}
+.leaflet-container a {
+  -webkit-tap-highlight-color: unset;
 }
 .file-control-btn {
   font-size: 1.4em;
@@ -55,6 +58,6 @@ table tr:nth-child(even) {
 }
 @media (max-width: 768px) {
   .leaflet-control-layers-list {
-    font-size: large;
+    font-size: medium;
   }
 }
