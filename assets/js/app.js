@@ -100,11 +100,15 @@ const controls = {
     position: "topright"
   }).addTo(map),
 
+  fileCtrl: L.control.addfile({
+    position: "bottomright"
+  }).addTo(map),
+
   locateCtrl: L.control.locate({
     icon: "fas fa-crosshairs",
     setView: "untilPan",
     cacheLocation: true,
-    position: "topleft",
+    position: "bottomright",
     flyTo: false,
     keepCurrentZoomLevel: true,
     circleStyle: {
@@ -127,10 +131,6 @@ const controls = {
     onLocationError: function(e) {
       alert(e.message);
     }
-  }).addTo(map),
-
-  fileCtrl: L.control.addfile({
-    position: "topleft"
   }).addTo(map),
 
   scaleCtrl: L.control.scale({
