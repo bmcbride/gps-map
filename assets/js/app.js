@@ -333,7 +333,7 @@ function addOverlayLayer(layer, name, key) {
   controls.layerCtrl.addOverlay(layer, `
     ${name.replace("_", " ")}<br>
     <span class="layer-buttons">
-      <input type="range" value="${layer instanceof L.GeoJSON ? 0.2 : 1}" step="0.1" min="0" max="1" data-layer="${L.Util.stamp(layer)}" style="width: 100%;" oninput="changeOpacity(${L.Util.stamp(layer)});">
+      <input type="range" value="1" step="0.1" min="0" max="1" data-layer="${L.Util.stamp(layer)}" style="width: 100%;" oninput="changeOpacity(${L.Util.stamp(layer)});">
       <a class="layer-btn" href="#" title="Zoom to layer" onclick="zoomToLayer(${L.Util.stamp(layer)}); return false;"><i class="fas fa-expand-arrows-alt" style="color: #777"></i></a>
       <a class="layer-btn" href="#" title="Remove layer" onclick="removeLayer(${L.Util.stamp(layer)}, '${name}', 'overlays', '${key}'); return false;"><i class="fas fa-trash" style="color: red"></i></a>
     </span>
@@ -393,7 +393,7 @@ function changeOpacity(id) {
     layer.setOpacity(value);
   } else if (layer instanceof L.GeoJSON) {
     layer.setStyle({
-      // opacity: value,
+      opacity: value,
       fillOpacity: value
     });
   }
