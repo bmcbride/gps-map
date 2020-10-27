@@ -54,6 +54,63 @@ table tr:nth-child(even) {
 .leaflet-container a {
   -webkit-tap-highlight-color: unset;
 }
+.leaflet-touch .leaflet-control-layers {
+  border-radius: 50%;
+}
+.leaflet-control-layers {
+  border-radius: 50%;
+}
+.leaflet-control-layers-toggle {
+  width: 44px;
+  height: 44px;
+  line-height: 44px;
+}
+.leaflet-touch .leaflet-control-layers-expanded {
+  border-radius: 5px;
+}
+.leaflet-control-layers-expanded {
+  border-radius: 5px;
+}
+.leaflet-bar {
+  /* box-shadow: 0 1px 5px rgba(0,0,0,0.65); */
+  border-radius: 50%;
+}
+.leaflet-bar a {
+  width: 44px;
+  height: 44px;
+  line-height: 44px;
+}
+.leaflet-touch .leaflet-bar a {
+  width: 44px;
+  height: 44px;
+  line-height: 44px;
+}
+.leaflet-bar a, .leaflet-bar a:hover {
+  width: 44px;
+  height: 44px;
+  line-height: 44px;
+}
+.leaflet-touch .leaflet-bar a, .leaflet-bar a:hover {
+  width: 44px;
+  height: 44px;
+  line-height: 44px;
+}
+.leaflet-touch .leaflet-bar a:first-child {
+  border-top-left-radius: 50%;
+  border-top-right-radius: 50%;
+}
+.leaflet-touch .leaflet-bar a:last-child {
+  border-bottom-left-radius: 50%;
+  border-bottom-right-radius: 50%;
+}
+.leaflet-bar a:first-child {
+  border-top-left-radius: 50%;
+  border-top-right-radius: 50%;
+}
+.leaflet-bar a:last-child {
+  border-bottom-left-radius: 50%;
+  border-bottom-right-radius: 50%;
+}
 .file-control-btn {
   font-size: 1.4em;
   color: #444;
