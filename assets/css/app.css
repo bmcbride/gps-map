@@ -3,6 +3,9 @@ html, body, #map {
   width: 100%;
   margin: 0;
 }
+#map {
+  background: white;
+}
 table {
   border-collapse: collapse;
   border-bottom: 1px solid #ccc;

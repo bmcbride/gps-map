@@ -1,3 +1,13 @@
+const fileStorage = localforage.createInstance({
+  name: "data",
+  storeName: "files"
+});
+
+const basemapStorage = localforage.createInstance({
+  name: "data",
+  storeName: "basemaps"
+});
+
 const map = L.map("map", {
   zoomSnap: 0,
   maxZoom: 22,
@@ -133,13 +143,7 @@ function handleFile(file) {
   const name = file.name.split(".").slice(0, -1).join(".");
 
   if (file.name.endsWith(".mbtiles")) {
-    initSqlJs({
-      locateFile: function() {
-        return "assets/vendor/sqljs-1.3.0/sql-wasm.wasm";
-      }
-    }).then(function(SQL){
-      loadRaster(file, name);
-    });
+    loadRaster(file, name);
   } else if (file.name.endsWith(".geojson") || file.name.endsWith(".kml") || file.name.endsWith(".gpx")) {
     const format = file.name.split(".").pop();
     loadVector(file, name, format);
@@ -164,16 +168,25 @@ function loadVector(file, name, format) {
       geojson = toGeoJSON.gpx(gpx);
     }
 
-    createVectorLayer(geojson, name, format, null, true, null);
+    const key = Date.now().toString();
+    const value = {
+      "name": name,
+      "type": "geojson",
+      "data": geojson
+    };
+    fileStorage.setItem(key, value).then(function (value) {
+      createVectorLayer(key, value.name, value.data, true);
+    }).catch(function(err) {
+      alert("Error saving data!");
+    });
   }
 
   reader.readAsText(file);
 }
 
-function createVectorLayer(geojson, name, format, url, active, key) {
-  const layer = L.geoJSON(geojson, {
+function createVectorLayer(key, name, data, active) {
+  const layer = L.geoJSON(data, {
     bubblingMouseEvents: false,
-    url: url ? url : null,
     style: function (feature) {
       return {	
         color: feature.properties["stroke"] ? feature.properties["stroke"] : "#ff0000",
@@ -184,30 +197,24 @@ function createVectorLayer(geojson, name, format, url, active, key) {
       };	
     },	
     pointToLayer: function (feature, latlng) {	
-      if (format == "kml") {	
-        return L.circleMarker(latlng, {	
-          radius: 6	
-        }); 	
-      } else {	
-        const size = feature.properties["marker-size"] ? feature.properties["marker-size"] : "small";
-        const color = feature.properties["marker-color"] ? feature.properties["marker-color"] : "#ff0000";
-        const sizes = {
-          small: [23, 23],
-          medium: [30, 30],
-          large: [37, 37]
-        };
-        const iconOptions = {
-          iconUrl: encodeURI(`data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><path d="M172.268 501.67C26.97 291.031 0 269.413 0 192 0 85.961 85.961 0 192 0s192 85.961 192 192c0 77.413-26.97 99.031-172.268 309.67-9.535 13.774-29.93 13.773-39.464 0z" fill="${color}"/></svg>`).replace("#", "%23"),
-          iconSize: sizes[size],
-          shadowUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACMAAABaBAMAAADA2vJjAAAAGFBMVEUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABWNxwqAAAACHRSTlMACRcjKzJAOtxk//MAAABzSURBVDjL7ZDRDYAwCER1A3EDcQNxA3EDGzeoE2jX91JNTYoLaPr+eDkIUBUK/6TOarpongC1HCFKhrkXwNxRMiKqOslwO3TJODugcHEecT/Oa/BbgOMOqkZI3eHBvkyIvSrbaMfbJeyq9iB7dv6cQuFrnJu2IxWE6etQAAAAAElFTkSuQmCC',
-          shadowSize: sizes[size],
-          shadowAnchor: [sizes[size][0] / 2, sizes[size][1] / 2],
-          iconAnchor: [sizes[size][0] / 2, sizes[size][1]],
-          popupAnchor: [0, -sizes[size][1] / 2]
-        };
-        const icon = L.icon(iconOptions);
-        return L.marker(latlng, {icon});
-      }
+      const size = feature.properties["marker-size"] ? feature.properties["marker-size"] : "small";
+      const color = feature.properties["marker-color"] ? feature.properties["marker-color"] : "#ff0000";
+      const sizes = {
+        small: [23, 23],
+        medium: [30, 30],
+        large: [37, 37]
+      };
+      const iconOptions = {
+        iconUrl: encodeURI(`data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><path d="M172.268 501.67C26.97 291.031 0 269.413 0 192 0 85.961 85.961 0 192 0s192 85.961 192 192c0 77.413-26.97 99.031-172.268 309.67-9.535 13.774-29.93 13.773-39.464 0z" fill="${color}"/></svg>`).replace("#", "%23"),
+        iconSize: sizes[size],
+        shadowUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACMAAABaBAMAAADA2vJjAAAAGFBMVEUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABWNxwqAAAACHRSTlMACRcjKzJAOtxk//MAAABzSURBVDjL7ZDRDYAwCER1A3EDcQNxA3EDGzeoE2jX91JNTYoLaPr+eDkIUBUK/6TOarpongC1HCFKhrkXwNxRMiKqOslwO3TJODugcHEecT/Oa/BbgOMOqkZI3eHBvkyIvSrbaMfbJeyq9iB7dv6cQuFrnJu2IxWE6etQAAAAAElFTkSuQmCC',
+        shadowSize: sizes[size],
+        shadowAnchor: [sizes[size][0] / 2, sizes[size][1] / 2],
+        iconAnchor: [sizes[size][0] / 2, sizes[size][1]],
+        popupAnchor: [0, -sizes[size][1] / 2]
+      };
+      const icon = L.icon(iconOptions);
+      return L.marker(latlng, {icon});
     },
     onEachFeature: function (feature, layer) {
       let table = "<div style='overflow:auto;'><table>";
@@ -266,35 +273,24 @@ function createVectorLayer(geojson, name, format, url, active, key) {
   }
 }
 
-function fetchGeoJSON(name, url, active, key) {
+function fetchGeoJSON(name, url, key) {
   if (navigator.onLine) {
     showLoader();
     fetch(url)
       .then(response => response.json())
       .then(data => {
         hideLoader();
-        createVectorLayer(data, name, "geojson", url, active, key);
-      });
-  } else {
-    vex.dialog.alert("Must be online to fetch data!");
-  }
-}
-
-function refreshGeoJSON(id) {
-  if (navigator.onLine) {
-    const layer = layers.overlays[id];
-    if (!map.hasLayer(layer)) {
-      map.addLayer(layers.overlays[id]);
-    }
-    if (layer.options.url) {
-      fetch(layer.options.url)
-        .then(response => response.json())
-        .then(data => {
-          if (data) {
-            layer.clearLayers().addData(data);
-          }
+        const value = {
+          "name": name,
+          "type": "geojson",
+          "data": data
+        };
+        fileStorage.setItem(key, value).then(function (value) {
+          createVectorLayer(key, value.name, value.data, true);
+        }).catch(function(err) {
+          alert("Error saving data!");
         });
-    }
+      });
   } else {
     vex.dialog.alert("Must be online to fetch data!");
   }
@@ -304,18 +300,32 @@ function loadRaster(file, name) {
   const reader = new FileReader();
 
   reader.onload = function(e) {
-    const layer = L.tileLayer.mbTiles(reader.result, {
-      autoScale: true,
-      fitBounds: true,
-      updateWhenIdle: false
-    }).on("databaseloaded", function(e) {
-      name = (layer.options.name ? layer.options.name : name);
-      addOverlayLayer(layer, name);
-    }).addTo(map);
-    layers.overlays[L.Util.stamp(layer)] = layer;
+    const key = Date.now().toString();
+    const value = {
+      "name": name,
+      "type": "mbtiles",
+      "data": reader.result
+    };
+    fileStorage.setItem(key, value).then(function (value) {
+      createRasterLayer(key, value.name, value.data, true);
+    }).catch(function(err) {
+      alert("Error saving data!");
+    });
   }
 
   reader.readAsArrayBuffer(file);
+}
+
+function createRasterLayer(key, name, data, active) {
+  const layer = L.tileLayer.mbTiles(data, {
+    autoScale: true,
+    fitBounds: active ? true : false,
+    updateWhenIdle: false
+  }).on("databaseloaded", function(e) {
+    name = (layer.options.name ? layer.options.name : name);
+    addOverlayLayer(layer, name, key);
+  }).addTo(map);
+  layers.overlays[L.Util.stamp(layer)] = layer;
 }
 
 function addOverlayLayer(layer, name, key) {
@@ -323,10 +333,7 @@ function addOverlayLayer(layer, name, key) {
   controls.layerCtrl.addOverlay(layer, `
     ${name.replace("_", " ")}<br>
     <span class="layer-buttons">
-      <input type="range" value="1" step="0.1" min="0" max="1" data-layer="${L.Util.stamp(layer)}" style="width: 100%;" oninput="changeOpacity(${L.Util.stamp(layer)});">
-      <span style="display: ${(layer instanceof L.GeoJSON && layer.options.url) ? 'unset' : 'none'}">
-        <a class="layer-btn" href="#" title="Refresh layer" onclick="refreshGeoJSON(${L.Util.stamp(layer)}); return false;"><i class="fas fa-sync" style="color: #777"></i></a>
-      </span>
+      <input type="range" value="${layer instanceof L.GeoJSON ? 0.2 : 1}" step="0.1" min="0" max="1" data-layer="${L.Util.stamp(layer)}" style="width: 100%;" oninput="changeOpacity(${L.Util.stamp(layer)});">
       <a class="layer-btn" href="#" title="Zoom to layer" onclick="zoomToLayer(${L.Util.stamp(layer)}); return false;"><i class="fas fa-expand-arrows-alt" style="color: #777"></i></a>
       <a class="layer-btn" href="#" title="Remove layer" onclick="removeLayer(${L.Util.stamp(layer)}, '${name}', 'overlays', '${key}'); return false;"><i class="fas fa-trash" style="color: red"></i></a>
     </span>
@@ -362,17 +369,14 @@ function removeLayer(id, name, type, key) {
         map.removeLayer(layer);
         controls.layerCtrl.removeLayer(layer);
 
-        if (type && key) {
-          let storage = localStorage.getItem(type);
-          if (storage) {
-            storage = JSON.parse(storage);
-            storage.forEach((element, index) => {
-              if (element.id == key) {
-                storage.splice(index, 1);
-              }
-            });
-            localStorage.setItem(type, JSON.stringify(storage));
-          }
+        if (type == "basemaps") {
+          basemapStorage.removeItem(key).then(function () {
+            console.log("saved basemap removed!");
+          });
+        } else if (type == "overlays") {
+          fileStorage.removeItem(key).then(function () {
+            console.log("saved layer removed!");
+          });
         }
       }
     }
@@ -389,7 +393,7 @@ function changeOpacity(id) {
     layer.setOpacity(value);
   } else if (layer instanceof L.GeoJSON) {
     layer.setStyle({
-      opacity: value,
+      // opacity: value,
       fillOpacity: value
     });
   }
@@ -477,19 +481,11 @@ function layerInput() {
         } else {
           storage = [];
         }
-        data.id = Date.now();
-        storage.push({
-          "id": data.id,
-          "name": data.name,
-          "url": data.url,
-          "type": data.type,
-          "layers": data.layers
-        });
-        localStorage.setItem(type, JSON.stringify(storage));
+        data.key = Date.now().toString();
         if (type == "overlays") {
-          fetchGeoJSON(data.name, data.url, true, data.id);
+          fetchGeoJSON(data.name, data.url, data.key);
         } else {
-          addBasemap(data.name, data.url, data.id, data.type, data.layers, true);
+          addBasemap(data.name, data.url, data.key, data.type, data.layers, true);
         }
       }
     },
@@ -509,58 +505,86 @@ function layerInput() {
   })
 }
 
-function addBasemap(name, url, id, type, wmsLayers, active) {
-  let layer = null;
-  if (type == "wms") {
-    layer = L.tileLayer.wms(url, {
-      maxNativeZoom: 18,
-      maxZoom: map.getMaxZoom(),
-      layers: wmsLayers,
-      format: "image/png"
-    });
-  } else if (type == "xyz") {
-   layer = L.tileLayer(url, {
-      maxNativeZoom: 18,
-      maxZoom: map.getMaxZoom()
-    }); 
-  }
+function addBasemap(name, url, key, type, wmsLayers, active) {
+  const value = {
+    "name": name,
+    "url": url,
+    "type": type,
+    "layers": wmsLayers
+  };
+  basemapStorage.setItem(key, value).then(function (value) {
+    let layer = null;
+    if (type == "wms") {
+      layer = L.tileLayer.wms(value.url, {
+        maxNativeZoom: 18,
+        maxZoom: map.getMaxZoom(),
+        layers: value.layers,
+        format: "image/png"
+      });
+    } else if (type == "xyz") {
+    layer = L.tileLayer(value.url, {
+        maxNativeZoom: 18,
+        maxZoom: map.getMaxZoom()
+      }); 
+    }
 
-  controls.layerCtrl.addBaseLayer(layer, `
-    <span>${name}</span>
-    <span style="float: right;">
-      <a class="layer-btn" href="#" title="Remove layer" onclick="removeLayer(${L.Util.stamp(layer)}, '${name}', 'basemaps', ${id}); return false;"><i class="fas fa-trash" style="color: red"></i></a>
-    </span>
-    <div style="clear: both;"></div>
-  `);
+    controls.layerCtrl.addBaseLayer(layer, `
+      <span>${name}</span>
+      <span style="float: right;">
+        <a class="layer-btn" href="#" title="Remove layer" onclick="removeLayer(${L.Util.stamp(layer)}, '${name}', 'basemaps', ${key}); return false;"><i class="fas fa-trash" style="color: red"></i></a>
+      </span>
+      <div style="clear: both;"></div>
+    `);
 
-  if (active) {
-    switchBaseLayer(null);
-    layer.addTo(map);  
-  }
-  
-  layers.basemaps[L.Util.stamp(layer)] = layer;
+    if (active) {
+      switchBaseLayer(null);
+      layer.addTo(map);  
+    }
+    
+    layers.basemaps[L.Util.stamp(layer)] = layer;
+  }).catch(function(err) {
+    alert("Error saving data!");
+  });
 }
 
 function loadBasemaps() {
-  let basemaps = localStorage.getItem("basemaps");
-  if (basemaps) {
-    basemaps = JSON.parse(basemaps);
-    basemaps.forEach(element => {
-      addBasemap(element.name, element.url, element.id, element.type, element.layers, false);
-    });
-  }
+  basemapStorage.length().then(function(numberOfKeys) {
+    if (numberOfKeys > 0) {
+      basemapStorage.iterate(function(value, key, iterationNumber) {
+        addBasemap(value.name, value.url, key, value.type, value.layers, false);
+      }).then(function() {
+        // console.log("saved basemaps loaded!");
+      }).catch(function(err) {
+        alert("Error loading saved data!");
+      });
+    } else {
+      // console.log("no saved layers!");
+    }
+  }).catch(function(err) {
+    console.log(err);
+  });
 }
 
 function loadOverlays() {
-  let overlays = localStorage.getItem("overlays");
-  if (overlays && navigator.onLine) {
-    overlays = JSON.parse(overlays);
-    overlays.forEach(element => {
-      if (element.type == "geojson") {
-        fetchGeoJSON(element.name, element.url, false, element.id);
-      }
-    });
-  }
+  fileStorage.length().then(function(numberOfKeys) {
+    if (numberOfKeys > 0) {
+      fileStorage.iterate(function(value, key, iterationNumber) {
+        if (value.type == "mbtiles") {
+          createRasterLayer(key, value.name, value.data, (numberOfKeys == 1 ? true : false));
+        } else if (value.type == "geojson") {
+          createVectorLayer(key, value.name, value.data, false);
+        }
+      }).then(function() {
+        // console.log("saved layers loaded!");
+      }).catch(function(err) {
+        alert("Error loading saved data!");
+      });
+    } else {
+      // console.log("no saved layers!");
+    }
+  }).catch(function(err) {
+    console.log(err);
+  });
 }
 
 // Drag and drop files
@@ -590,13 +614,18 @@ window.addEventListener("offline",  function(e) {
   switchBaseLayer("None");
 });
 
-document.addEventListener("DOMContentLoaded", function(e) { 
+initSqlJs({
+  locateFile: function() {
+    return "assets/vendor/sqljs-1.3.0/sql-wasm.wasm";
+  }
+}).then(function(SQL){
   vex.defaultOptions.className = "vex-theme-top";
   navigator.onLine ? null : switchBaseLayer("None");
   document.getElementsByClassName("leaflet-control-layers")[0].style.maxHeight = `${(document.getElementById("map").offsetHeight * .75)}px`;
   document.getElementsByClassName("leaflet-control-layers")[0].style.maxWidth = `${(document.getElementById("map").offsetWidth * .75)}px`;
+  // loadSavedLayers();
+  loadOverlays();
 });
 
 loadBasemaps();
-loadOverlays();
 controls.locateCtrl.start();
