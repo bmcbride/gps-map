@@ -17,7 +17,8 @@ const map = L.map("map", {
     tolerance: 10
   })
 }).fitWorld();
-map.attributionControl.setPrefix("<a href='#' onclick='showInfo(); return false;'>About</a>");
+// map.attributionControl.setPrefix("<a href='#' onclick='showInfo(); return false;'>About</a>");
+map.attributionControl.setPrefix("");
 
 map.once("locationfound", function(e) {
   map.fitBounds(e.bounds, {maxZoom: 18});
@@ -77,9 +78,14 @@ L.Control.AddFile = L.Control.extend({
     }, false);
     
     const div = L.DomUtil.create("div", "leaflet-bar leaflet-control");
+    // div.innerHTML = `
+    //   <a class='leaflet-bar-part leaflet-bar-part-single file-control-btn' title='Load File' onclick='fileInput.click();'>
+    //     <i id='loading-icon' class='fas fa-map-marked-alt'></i>
+    //   </a>
+    // `;
     div.innerHTML = `
-      <a class='leaflet-bar-part leaflet-bar-part-single file-control-btn' title='Load File' onclick='fileInput.click();'>
-        <i id='loading-icon' class='fas fa-map-marked-alt'></i>
+      <a class='leaflet-bar-part leaflet-bar-part-single file-control-btn' title='Load File' onclick='showInfo();'>
+        <i class='fas fa-info-circle'></i>
       </a>
     `;
     L.DomEvent.on(div, "click", function (e) {
@@ -438,13 +444,23 @@ function switchBaseLayer(name) {
 }
 
 function showInfo() {
-  vex.dialog.alert({ unsafeMessage: `
-    <p>Welcome to <strong>GPSMap.app</strong>, an offline capable map viewer with GPS integration!</p>
-    <p>Tap the map/marker button to load an MBTiles, GeoJSON, KML, or GPX file directly from your device.</p>
-    <p>Tap the layers button to view online basemaps and manage offline layers.</p>
-    <p>Tap <a href="#" onclick="layerInput(); return false;">here</a> to save custom online layers.</p>
-    <p>Developed by Bryan McBride - mcbride.bryan@gmail.com</p>
-  `});
+  vex.dialog.open({
+    unsafeMessage: `
+      <p>Welcome to <strong>GPSMap.app</strong>, an offline capable map viewer with GPS integration!</p>
+      <p>Tap the layers button to view online basemaps, toggle layer visibility, and manage saved layers.</p>
+      <p>Use the buttons below to import and save MBTiles, GeoJSON, KML, or GPX files directly from your device or the web.</p>
+      <p>Contact: <a style="color: #0078A8;" href="mailto:mcbride.bryan@gmail.com?subject=GPSMap.app">mcbride.bryan@gmail.com</a></p>
+    `,
+    input: [
+      "<input type='button' class='vex-dialog-button vex-dialog-button-primary' style='width: 100%; margin: 0px 0px 15px 0px;' value='Add Local File' onclick='fileInput.click(); vex.closeAll(); return false;'>",
+      "<input type='button' class='vex-dialog-button vex-dialog-button-primary' style='width: 100%; margin: 0px 0px 15px 0px;' value='Add Remote Layer' onclick='layerInput(); return false;'>"
+    ].join(''),
+    buttons: [{
+      type: "submit",
+      text: "Close",
+      className: "vex-dialog-button-secondary"
+    }]
+  })
 }
 
 function layerInput() {
