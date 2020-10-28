@@ -576,7 +576,7 @@ function loadOverlays() {
         alert("Error loading saved data!");
       });
     } else {
-      // console.log("no saved layers!");
+      hideLoader();
     }
   }).catch(function(err) {
     console.log(err);
@@ -612,6 +612,7 @@ window.addEventListener("offline",  function(e) {
 
 initSqlJs({
   locateFile: function() {
+    showLoader();
     return "assets/vendor/sqljs-1.3.0/sql-wasm.wasm";
   }
 }).then(function(SQL){
@@ -619,7 +620,6 @@ initSqlJs({
   navigator.onLine ? null : switchBaseLayer("None");
   document.getElementsByClassName("leaflet-control-layers")[0].style.maxHeight = `${(document.getElementById("map").offsetHeight * .75)}px`;
   document.getElementsByClassName("leaflet-control-layers")[0].style.maxWidth = `${(document.getElementById("map").offsetWidth * .75)}px`;
-  // loadSavedLayers();
   loadOverlays();
 });
 
