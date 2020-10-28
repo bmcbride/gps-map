@@ -273,26 +273,31 @@ function createVectorLayer(key, name, data, active) {
   }
 }
 
-function fetchGeoJSON(name, url, key) {
+function fetchFile(name, url, key, type) {
   if (navigator.onLine) {
     showLoader();
     fetch(url)
-      .then(response => response.json())
+      .then(response => type == "geojson" ? response.json() : response.arrayBuffer())
       .then(data => {
         hideLoader();
         const value = {
           "name": name,
-          "type": "geojson",
+          "type": type,
           "data": data
         };
         fileStorage.setItem(key, value).then(function (value) {
-          createVectorLayer(key, value.name, value.data, true);
+          if (type == "geojson") {
+            createVectorLayer(key, value.name, value.data, true);
+          } else {
+            createRasterLayer(key, value.name, value.data, true);
+          }
         }).catch(function(err) {
           alert("Error saving data!");
         });
       });
   } else {
     vex.dialog.alert("Must be online to fetch data!");
+    hideLoader();
   }
 }
 
@@ -408,15 +413,17 @@ function formatProperty(value) {
 }
 
 function showLoader() {
-  const loadingIcon = document.getElementById("loading-icon");
-  loadingIcon.classList.remove("fa-map-marked-alt");
-  loadingIcon.classList.add("fa-spinner", "fa-spin");
+  // const loadingIcon = document.getElementById("loading-icon");
+  // loadingIcon.classList.remove("fa-map-marked-alt");
+  // loadingIcon.classList.add("fa-spinner", "fa-spin");
+  document.getElementById("progress-bar").style.display = "block";
 }
 
 function hideLoader() {
-  const loadingIcon = document.getElementById("loading-icon");
-  loadingIcon.classList.remove("fa-spin", "fa-spinner");
-  loadingIcon.classList.add("fa-map-marked-alt");
+  // const loadingIcon = document.getElementById("loading-icon");
+  // loadingIcon.classList.remove("fa-spin", "fa-spinner");
+  // loadingIcon.classList.add("fa-map-marked-alt");
+  document.getElementById("progress-bar").style.display = "none";
 }
 
 function switchBaseLayer(name) {
@@ -450,6 +457,7 @@ function layerInput() {
       `<select name='type' id='layer-type'>
         <option value='xyz'>XYZ</option>
         <option value='wms'>WMS</option>
+        <option value='mbtiles'>MBTiles</option>
         <option value='geojson'>GeoJSON</option>
       </select>`,
       "<input name='layers' id='wms-layers' type='text' placeholder='WMS Layer(s)' style='display: none;' />",
@@ -468,22 +476,9 @@ function layerInput() {
     }],
     callback: function (data) {
       if (data) {
-        let type = null;
-        if (data.type == "geojson") {
-          type = "overlays";
-        } else {
-          type = "basemaps";
-        } 
-
-        let storage = localStorage.getItem(type);
-        if (storage) {
-          storage = JSON.parse(storage);
-        } else {
-          storage = [];
-        }
         data.key = Date.now().toString();
-        if (type == "overlays") {
-          fetchGeoJSON(data.name, data.url, data.key);
+        if (data.type == "geojson" || data.type == "mbtiles") {
+          fetchFile(data.name, data.url, data.url, data.type);
         } else {
           addBasemap(data.name, data.url, data.key, data.type, data.layers, true);
         }
@@ -568,6 +563,7 @@ function loadBasemaps() {
 function loadOverlays() {
   fileStorage.length().then(function(numberOfKeys) {
     if (numberOfKeys > 0) {
+      showLoader();
       fileStorage.iterate(function(value, key, iterationNumber) {
         if (value.type == "mbtiles") {
           createRasterLayer(key, value.name, value.data, (numberOfKeys == 1 ? true : false));
@@ -575,7 +571,7 @@ function loadOverlays() {
           createVectorLayer(key, value.name, value.data, false);
         }
       }).then(function() {
-        // console.log("saved layers loaded!");
+        hideLoader();
       }).catch(function(err) {
         alert("Error loading saved data!");
       });
