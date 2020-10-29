@@ -224,17 +224,7 @@ function createVectorLayer(key, name, data, active) {
     },
     onEachFeature: function (feature, layer) {
       let table = "<div style='overflow:auto;'><table>";
-      
-      if (feature && feature.geometry && feature.geometry.type === "Point") {
-        const latitude = feature.geometry.coordinates[1].toFixed(6);
-        const longitude = feature.geometry.coordinates[0].toFixed(6);
-        table += `<tr><th>LATITUDE</th><td>${latitude}</td></tr>`;
-        table += `<tr><th>LONGITUDE</th><td>${longitude}</td></tr>`;
-      }
-
-      feature.properties["_id_"] = L.Util.stamp(layer);
-
-      const hiddenProps = ["styleUrl", "styleHash", "styleMapHash", "stroke", "stroke-opacity", "stroke-width", "opacity", "fill", "fill-opacity", "icon", "scale", "coordTimes", "marker-size", "marker-color", "marker-symbol", "_id_"];
+      const hiddenProps = ["styleUrl", "styleHash", "styleMapHash", "stroke", "stroke-opacity", "stroke-width", "opacity", "fill", "fill-opacity", "icon", "scale", "coordTimes", "marker-size", "marker-color", "marker-symbol"];
       for (const key in feature.properties) {
         if (feature.properties.hasOwnProperty(key) && hiddenProps.indexOf(key) == -1) {
           table += "<tr><th>" + key.toUpperCase() + "</th><td>" + formatProperty(feature.properties[key]) + "</td></tr>";
@@ -300,6 +290,11 @@ function fetchFile(name, url, key, type) {
         }).catch(function(err) {
           alert("Error saving data!");
         });
+      })
+      .catch((error) => {
+        hideLoader();
+        console.error("Error:", error);
+        vex.dialog.alert("Error fetching remote file...");
       });
   } else {
     vex.dialog.alert("Must be online to fetch data!");
