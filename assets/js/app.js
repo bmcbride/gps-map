@@ -85,7 +85,7 @@ L.Control.AddFile = L.Control.extend({
     // `;
     div.innerHTML = `
       <a class='leaflet-bar-part leaflet-bar-part-single file-control-btn' title='Info' onclick='showInfo();'>
-        <i class='icon-info_outline'></i>
+        <i class='icon-info'></i>
       </a>
     `;
     L.DomEvent.on(div, "click", function (e) {
