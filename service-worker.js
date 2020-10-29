@@ -31,7 +31,7 @@ workbox.precaching.precacheAndRoute([
   {url: 'assets/vendor/vex-4.1.0/js/vex.combined.min.js', revision: '09.09.20.1'},
   {url: 'assets/vendor/localForage-1.9.0/localforage.min.js', revision: '10.26.20.1'},
   {url: 'assets/js/app.js', revision: '10.28.20.4'},
-  {url: 'assets/css/app.css', revision: '10.28.20.2'}
+  {url: 'assets/css/app.css', revision: '10.28.20.3'}
 ], {
   // Ignore all URL parameters.
   ignoreURLParametersMatching: [/.*/]

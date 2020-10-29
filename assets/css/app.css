@@ -110,6 +110,10 @@ table tr:nth-child(even) {
   border-bottom-left-radius: 50%;
   border-bottom-right-radius: 50%;
 }
+.leaflet-touch .leaflet-control-layers, .leaflet-touch .leaflet-bar {
+  border: unset;
+  box-shadow: 0 1px 5px rgba(0,0,0,0.65);
+}
 .fas {
   line-height: unset;
 }
