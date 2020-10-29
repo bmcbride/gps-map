@@ -37,6 +37,12 @@ table tr:nth-child(even) {
   font-weight: normal;
   margin-bottom: 0px;
 }
+.leaflet-control-layers-overlays label {
+  border-bottom: 1px solid #ddd;
+}
+.leaflet-control-layers-overlays label:last-child{
+  border-bottom: none;
+}
 .leaflet-control-layers-list input[type='radio'], input[type='checkbox'] {
   margin: 2px;
 }
