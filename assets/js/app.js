@@ -84,8 +84,8 @@ L.Control.AddFile = L.Control.extend({
     //   </a>
     // `;
     div.innerHTML = `
-      <a class='leaflet-bar-part leaflet-bar-part-single file-control-btn' title='Load File' onclick='showInfo();'>
-        <i class='fas fa-info-circle'></i>
+      <a class='leaflet-bar-part leaflet-bar-part-single file-control-btn' title='Info' onclick='showInfo();'>
+        <i class='icon-info_outline'></i>
       </a>
     `;
     L.DomEvent.on(div, "click", function (e) {
@@ -111,7 +111,7 @@ const controls = {
   }).addTo(map),
 
   locateCtrl: L.control.locate({
-    icon: "fas fa-crosshairs",
+    icon: "icon-gps_fixed",
     setView: "untilPan",
     cacheLocation: true,
     position: "bottomright",
@@ -125,6 +125,7 @@ const controls = {
     },
     metric: false,
     strings: {
+      title: "My location",
       popup: function(options) {
         const loc = controls.locateCtrl._marker.getLatLng();
         return `<div style="text-align: center;">You are within ${Number(options.distance).toLocaleString()} ${options.unit}<br>from <strong>${loc.lat.toFixed(6)}</strong>, <strong>${loc.lng.toFixed(6)}</strong></div>`;
@@ -340,8 +341,8 @@ function addOverlayLayer(layer, name, key) {
     ${name.replace("_", " ")}<br>
     <span class="layer-buttons">
       <input type="range" value="1" step="0.1" min="0" max="1" data-layer="${L.Util.stamp(layer)}" style="width: 100%;" oninput="changeOpacity(${L.Util.stamp(layer)});">
-      <a class="layer-btn" href="#" title="Zoom to layer" onclick="zoomToLayer(${L.Util.stamp(layer)}); return false;"><i class="fas fa-expand-arrows-alt" style="color: #777"></i></a>
-      <a class="layer-btn" href="#" title="Remove layer" onclick="removeLayer(${L.Util.stamp(layer)}, '${name}', 'overlays', '${key}'); return false;"><i class="fas fa-trash" style="color: red"></i></a>
+      <a class="layer-btn" href="#" title="Zoom to layer" onclick="zoomToLayer(${L.Util.stamp(layer)}); return false;"><i class="icon-zoom_out_map" style="color: #777"></i></a>
+      <a class="layer-btn" href="#" title="Remove layer" onclick="removeLayer(${L.Util.stamp(layer)}, '${name}', 'overlays', '${key}'); return false;"><i class="icon-delete" style="color: red"></i></a>
     </span>
     <div style="clear: both;"></div>
   `);
@@ -537,7 +538,7 @@ function addBasemap(name, url, key, type, wmsLayers, active) {
     controls.layerCtrl.addBaseLayer(layer, `
       <span>${name}</span>
       <span style="float: right;">
-        <a class="layer-btn" href="#" title="Remove layer" onclick="removeLayer(${L.Util.stamp(layer)}, '${name}', 'basemaps', ${key}); return false;"><i class="fas fa-trash" style="color: red"></i></a>
+        <a class="layer-btn" href="#" title="Remove layer" onclick="removeLayer(${L.Util.stamp(layer)}, '${name}', 'basemaps', ${key}); return false;"><i class="icon-delete" style="color: red"></i></a>
       </span>
       <div style="clear: both;"></div>
     `);

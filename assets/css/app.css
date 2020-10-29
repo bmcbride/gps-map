@@ -50,6 +50,8 @@ table tr:nth-child(even) {
 }
 .layer-btn {
   padding-left: 10px;
+  font-size: 22px;
+  text-decoration: none;
 }
 .leaflet-container a {
   -webkit-tap-highlight-color: unset;
@@ -60,10 +62,14 @@ table tr:nth-child(even) {
 .leaflet-control-layers {
   border-radius: 50%;
 }
+.leaflet-touch .leaflet-control-layers-toggle {
+  width: 56px;
+  height: 56px;
+}
 .leaflet-control-layers-toggle {
-  width: 44px;
-  height: 44px;
-  line-height: 44px;
+  width: 56px;
+  height: 56px;
+  line-height: 56px;
 }
 .leaflet-touch .leaflet-control-layers-expanded {
   border-radius: 5px;
@@ -75,24 +81,24 @@ table tr:nth-child(even) {
   border-radius: 50%;
 }
 .leaflet-bar a {
-  width: 44px;
-  height: 44px;
-  line-height: 44px;
+  width: 56px;
+  height: 56px;
+  line-height: 56px;
 }
 .leaflet-touch .leaflet-bar a {
-  width: 44px;
-  height: 44px;
-  line-height: 44px;
+  width: 56px;
+  height: 56px;
+  line-height: 56px;
 }
 .leaflet-bar a, .leaflet-bar a:hover {
-  width: 44px;
-  height: 44px;
-  line-height: 44px;
+  width: 56px;
+  height: 56px;
+  line-height: 56px;
 }
 .leaflet-touch .leaflet-bar a, .leaflet-bar a:hover {
-  width: 44px;
-  height: 44px;
-  line-height: 44px;
+  width: 56px;
+  height: 56px;
+  line-height: 56px;
 }
 .leaflet-touch .leaflet-bar a:first-child {
   border-top-left-radius: 50%;
@@ -114,13 +120,16 @@ table tr:nth-child(even) {
   border: unset;
   box-shadow: 0 1px 5px rgba(0,0,0,0.65);
 }
-.fas {
-  line-height: unset;
-}
 .file-control-btn {
   font-size: 1.4em;
   color: #444;
   cursor: pointer;
+}
+.icon-info_outline, .icon-gps_fixed {
+  font-size: 24px;
+}
+[class^="icon-"], [class*=" icon-"] {
+  line-height: unset;
 }
 @media (max-width: 768px) {
   .leaflet-control-layers-list {
