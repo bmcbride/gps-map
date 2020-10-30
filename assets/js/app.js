@@ -595,6 +595,26 @@ function loadOverlays() {
   });
 }
 
+function loadURLparams() {
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.has("file")) {
+    const url = urlParams.get("file");
+    fileStorage.keys().then(function(keys) {
+       if (keys.includes(url)) {
+        //  console.log("file available in storage!");
+       } else {
+        const key = url;
+        const name = urlParams.has("name") ? urlParams.get("name") : "Remote File";
+        const type = urlParams.has("type") ? urlParams.get("type") : "mbtiles";
+        fetchFile(name, url, key, type);
+       }
+    }).catch(function(err) {
+      console.log(err);
+    });
+    window.history.replaceState(null, null, window.location.pathname);
+  }
+}
+
 // Drag and drop files
 const dropArea = document.getElementById("map");
 
@@ -633,6 +653,7 @@ initSqlJs({
   document.getElementsByClassName("leaflet-control-layers")[0].style.maxHeight = `${(document.getElementById("map").offsetHeight * .75)}px`;
   document.getElementsByClassName("leaflet-control-layers")[0].style.maxWidth = `${(document.getElementById("map").offsetWidth * .75)}px`;
   loadOverlays();
+  loadURLparams();
 });
 
 loadBasemaps();
