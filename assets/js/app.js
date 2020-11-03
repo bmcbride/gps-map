@@ -668,7 +668,7 @@ window.addEventListener("offline",  function(e) {
 initSqlJs({
   locateFile: function() {
     showLoader();
-    return "assets/vendor/sqljs-1.3.0/sql-wasm.wasm";
+    return "assets/vendor/sqljs-1.4.0/sql-wasm.wasm";
   }
 }).then(function(SQL){
   vex.defaultOptions.className = "vex-theme-top";
