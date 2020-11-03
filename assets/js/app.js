@@ -112,6 +112,7 @@ const controls = {
 
   locateCtrl: L.control.locate({
     icon: "icon-gps_fixed",
+    iconLoading: "icon-gps_not_fixed",
     setView: "untilPan",
     cacheLocation: true,
     position: "bottomright",
@@ -144,6 +145,8 @@ const controls = {
     position: "bottomleft"
   }).addTo(map)
 };
+
+let importFile = true;
 
 function handleFile(file) {
   showLoader();
@@ -181,11 +184,15 @@ function loadVector(file, name, format) {
       "type": "geojson",
       "data": geojson
     };
-    fileStorage.setItem(key, value).then(function (value) {
+    if (importFile) {
+      fileStorage.setItem(key, value).then(function (value) {
+        createVectorLayer(key, value.name, value.data, true);
+      }).catch(function(err) {
+        alert("Error saving data!");
+      });
+    } else {
       createVectorLayer(key, value.name, value.data, true);
-    }).catch(function(err) {
-      alert("Error saving data!");
-    });
+    }
   }
 
   reader.readAsText(file);
@@ -282,15 +289,24 @@ function fetchFile(name, url, key, type) {
           "type": type,
           "data": data
         };
-        fileStorage.setItem(key, value).then(function (value) {
+        if (importFile) {
+          fileStorage.setItem(key, value).then(function (value) {
+            if (type == "geojson") {
+              createVectorLayer(key, value.name, value.data, true);
+            } else {
+              createRasterLayer(key, value.name, value.data, true);
+            }
+          }).catch(function(err) {
+            alert("Error saving data!");
+          });
+        } else {
           if (type == "geojson") {
             createVectorLayer(key, value.name, value.data, true);
           } else {
             createRasterLayer(key, value.name, value.data, true);
           }
-        }).catch(function(err) {
-          alert("Error saving data!");
-        });
+        }
+        
       })
       .catch((error) => {
         hideLoader();
@@ -313,11 +329,16 @@ function loadRaster(file, name) {
       "type": "mbtiles",
       "data": reader.result
     };
-    fileStorage.setItem(key, value).then(function (value) {
+    if (importFile) {
+      fileStorage.setItem(key, value).then(function (value) {
+        createRasterLayer(key, value.name, value.data, true);
+      }).catch(function(err) {
+        alert("Error saving data!");
+      });
+    } else {
       createRasterLayer(key, value.name, value.data, true);
-    }).catch(function(err) {
-      alert("Error saving data!");
-    });
+    }
+    
   }
 
   reader.readAsArrayBuffer(file);
@@ -446,8 +467,10 @@ function showInfo() {
       <p>Tap the layers button to view online basemaps, toggle layer visibility, and manage saved layers.</p>
       <p>Use the buttons below to import and save MBTiles, GeoJSON, KML, or GPX files directly from your device or the web.</p>
       <p>Contact: <a style="color: #0078A8;" href="mailto:mcbride.bryan@gmail.com?subject=GPSMap.app">mcbride.bryan@gmail.com</a></p>
+      <hr>
     `,
     input: [
+      "<div style='width: 100%; margin: 0px 0px 15px 0px;'><input type='checkbox' id='import-file' name='import-file' value='import' checked='checked' onclick='this.checked ? importFile = true : importFile = false;'><label for='import-file'> Import file? Check to import and save file or uncheck to temporarily load file in memory.</label></div>",
       "<input type='button' class='vex-dialog-button vex-dialog-button-primary' style='width: 100%; margin: 0px 0px 15px 0px;' value='Add Local File' onclick='fileInput.click(); vex.closeAll(); return false;'>",
       "<input type='button' class='vex-dialog-button vex-dialog-button-primary' style='width: 100%; margin: 0px 0px 15px 0px;' value='Add Remote Layer' onclick='layerInput(); return false;'>"
     ].join(''),
