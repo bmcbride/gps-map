@@ -1,13 +1,3 @@
-const fileStorage = localforage.createInstance({
-  name: "data",
-  storeName: "files"
-});
-
-const basemapStorage = localforage.createInstance({
-  name: "data",
-  storeName: "basemaps"
-});
-
 const map = L.map("map", {
   zoomSnap: 0,
   tap: false,
@@ -18,15 +8,19 @@ const map = L.map("map", {
     tolerance: 10
   })
 }).fitWorld();
-// map.attributionControl.setPrefix("<a href='#' onclick='showInfo(); return false;'>About</a>");
-map.attributionControl.setPrefix("");
+map.attributionControl.setPrefix("<a href='#' onclick='showInfo(); return false;'>About</a>");
 
 map.once("locationfound", function(e) {
+  hideLoader();
   map.fitBounds(e.bounds, {maxZoom: 18});
 });
 
 map.on("click", function(e) {
   layers.select.clearLayers();
+});
+
+map.on("baselayerchange", function(e) {
+  localStorage.setItem("basemap", e.name);
 });
 
 const layers = {
@@ -79,14 +73,9 @@ L.Control.AddFile = L.Control.extend({
     }, false);
     
     const div = L.DomUtil.create("div", "leaflet-bar leaflet-control");
-    // div.innerHTML = `
-    //   <a class='leaflet-bar-part leaflet-bar-part-single file-control-btn' title='Load File' onclick='fileInput.click();'>
-    //     <i id='loading-icon' class='fas fa-map-marked-alt'></i>
-    //   </a>
-    // `;
     div.innerHTML = `
-      <a class='leaflet-bar-part leaflet-bar-part-single file-control-btn' title='Info' onclick='showInfo();'>
-        <i class='icon-info'></i>
+      <a class='leaflet-bar-part leaflet-bar-part-single file-control-btn' title='Load File' onclick='fileInput.click();'>
+        <i class='icon-add'></i>
       </a>
     `;
     L.DomEvent.on(div, "click", function (e) {
@@ -138,6 +127,8 @@ const controls = {
       maxZoom: 18
     },
     onLocationError: function(e) {
+      hideLoader();
+      document.querySelector(".leaflet-control-locate").getElementsByTagName("span")[0].className = "icon-gps_off";
       alert(e.message);
     }
   }).addTo(map),
@@ -146,8 +137,6 @@ const controls = {
     position: "bottomleft"
   }).addTo(map)
 };
-
-let importFile = true;
 
 function handleFile(file) {
   showLoader();
@@ -159,7 +148,7 @@ function handleFile(file) {
     const format = file.name.split(".").pop();
     loadVector(file, name, format);
   } else {
-    vex.dialog.alert("MBTiles, GeoJSON, KML, and GPX files supported.");
+    alert("MBTiles, GeoJSON, KML, and GPX files supported.");
     hideLoader();
   }
 }
@@ -179,57 +168,36 @@ function loadVector(file, name, format) {
       geojson = toGeoJSON.gpx(gpx);
     }
 
-    const key = Date.now().toString();
-    const value = {
-      "name": name,
-      "type": "geojson",
-      "data": geojson
-    };
-    if (importFile) {
-      fileStorage.setItem(key, value).then(function (value) {
-        createVectorLayer(key, value.name, value.data, true);
-      }).catch(function(err) {
-        alert("Error saving data!");
-      });
-    } else {
-      createVectorLayer(key, value.name, value.data, true);
-    }
+    createVectorLayer(name, geojson);
   }
 
   reader.readAsText(file);
 }
 
-function createVectorLayer(key, name, data, active) {
+function createVectorLayer(name, data) {
+  let radius = 4;
   const layer = L.geoJSON(data, {
     bubblingMouseEvents: false,
     style: function (feature) {
       return {	
-        color: feature.properties["stroke"] ? feature.properties["stroke"] : "#ff0000",
+        color: feature.properties["stroke"] ? feature.properties["stroke"] : feature.properties["marker-color"] ? feature.properties["marker-color"] : "#ff0000",
         opacity: feature.properties["stroke-opacity"] ? feature.properties["stroke-opacity"] : 1.0,
         weight: feature.properties["stroke-width"] ? feature.properties["stroke-width"] : 3,
-        fillColor: feature.properties["fill"] ? feature.properties["fill"] : "#ff0000",
-        fillOpacity: feature.properties["fill-opacity"] ? feature.properties["fill-opacity"] : 0.2,
+        fillColor: feature.properties["fill"] ? feature.properties["fill"] : feature.properties["marker-color"] ? feature.properties["marker-color"] : "#ff0000",
+        fillOpacity: feature.properties["fill-opacity"] ? feature.properties["fill-opacity"] : feature.geometry.type != "Point" ? 0.2 : feature.geometry.type == "Point" ? 1 : "",
       };	
-    },	
+    },
     pointToLayer: function (feature, latlng) {	
       const size = feature.properties["marker-size"] ? feature.properties["marker-size"] : "small";
-      const color = feature.properties["marker-color"] ? feature.properties["marker-color"] : "#ff0000";
       const sizes = {
-        small: [23, 23],
-        medium: [30, 30],
-        large: [37, 37]
+        small: 4,
+        medium: 6,
+        large: 8
       };
-      const iconOptions = {
-        iconUrl: encodeURI(`data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><path d="M172.268 501.67C26.97 291.031 0 269.413 0 192 0 85.961 85.961 0 192 0s192 85.961 192 192c0 77.413-26.97 99.031-172.268 309.67-9.535 13.774-29.93 13.773-39.464 0z" fill="${color}"/></svg>`).replace("#", "%23"),
-        iconSize: sizes[size],
-        shadowUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACMAAABaBAMAAADA2vJjAAAAGFBMVEUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABWNxwqAAAACHRSTlMACRcjKzJAOtxk//MAAABzSURBVDjL7ZDRDYAwCER1A3EDcQNxA3EDGzeoE2jX91JNTYoLaPr+eDkIUBUK/6TOarpongC1HCFKhrkXwNxRMiKqOslwO3TJODugcHEecT/Oa/BbgOMOqkZI3eHBvkyIvSrbaMfbJeyq9iB7dv6cQuFrnJu2IxWE6etQAAAAAElFTkSuQmCC',
-        shadowSize: sizes[size],
-        shadowAnchor: [sizes[size][0] / 2, sizes[size][1] / 2],
-        iconAnchor: [sizes[size][0] / 2, sizes[size][1]],
-        popupAnchor: [0, -sizes[size][1] / 2]
-      };
-      const icon = L.icon(iconOptions);
-      return L.marker(latlng, {icon});
+      radius = sizes[size];
+      return L.circleMarker(latlng, {
+        radius: radius
+      });
     },
     onEachFeature: function (feature, layer) {
       let table = "<div style='overflow:auto;'><table>";
@@ -258,7 +226,7 @@ function createVectorLayer(key, name, data, active) {
             },
             pointToLayer: function (feature, latlng) {
               return L.circleMarker(latlng, {
-                radius: 6,
+                radius: radius,
                 color: "#00FFFF"
               }); 
             }
@@ -269,102 +237,42 @@ function createVectorLayer(key, name, data, active) {
     
   });
 
-  addOverlayLayer(layer, name, key);
+  addOverlayLayer(layer, name);
   layers.overlays[L.Util.stamp(layer)] = layer;
-
-  if (active) {
-    layer.addTo(map);
-    zoomToLayer(L.Util.stamp(layer));
-  }
-}
-
-function fetchFile(name, url, key, type) {
-  if (navigator.onLine) {
-    showLoader();
-    fetch(url)
-      .then(response => type == "geojson" ? response.json() : response.arrayBuffer())
-      .then(data => {
-        hideLoader();
-        const value = {
-          "name": name,
-          "type": type,
-          "data": data
-        };
-        if (importFile) {
-          fileStorage.setItem(key, value).then(function (value) {
-            if (type == "geojson") {
-              createVectorLayer(key, value.name, value.data, true);
-            } else {
-              createRasterLayer(key, value.name, value.data, true);
-            }
-          }).catch(function(err) {
-            alert("Error saving data!");
-          });
-        } else {
-          if (type == "geojson") {
-            createVectorLayer(key, value.name, value.data, true);
-          } else {
-            createRasterLayer(key, value.name, value.data, true);
-          }
-        }
-        
-      })
-      .catch((error) => {
-        hideLoader();
-        console.error("Error:", error);
-        vex.dialog.alert("Error fetching remote file...");
-      });
-  } else {
-    vex.dialog.alert("Must be online to fetch data!");
-    hideLoader();
-  }
+  layer.addTo(map);
+  zoomToLayer(L.Util.stamp(layer));
 }
 
 function loadRaster(file, name) {
   const reader = new FileReader();
 
   reader.onload = function(e) {
-    const key = Date.now().toString();
-    const value = {
-      "name": name,
-      "type": "mbtiles",
-      "data": reader.result
-    };
-    if (importFile) {
-      fileStorage.setItem(key, value).then(function (value) {
-        createRasterLayer(key, value.name, value.data, true);
-      }).catch(function(err) {
-        alert("Error saving data!");
-      });
-    } else {
-      createRasterLayer(key, value.name, value.data, true);
-    }
-    
+    createRasterLayer(name, reader.result);
   }
 
   reader.readAsArrayBuffer(file);
 }
 
-function createRasterLayer(key, name, data, active) {
+function createRasterLayer(name, data) {
   const layer = L.tileLayer.mbTiles(data, {
     autoScale: true,
-    fitBounds: active ? true : false,
+    fitBounds: true,
     updateWhenIdle: false
   }).on("databaseloaded", function(e) {
     name = (layer.options.name ? layer.options.name : name);
-    addOverlayLayer(layer, name, key);
+    addOverlayLayer(layer, name);
   }).addTo(map);
   layers.overlays[L.Util.stamp(layer)] = layer;
 }
 
-function addOverlayLayer(layer, name, key) {
+function addOverlayLayer(layer, name) {
   hideLoader();
   controls.layerCtrl.addOverlay(layer, `
     ${name.replace("_", " ")}<br>
     <span class="layer-buttons">
       <input type="range" value="1" step="0.1" min="0" max="1" data-layer="${L.Util.stamp(layer)}" style="width: 100%;" oninput="changeOpacity(${L.Util.stamp(layer)});">
-      <a class="layer-btn" href="#" title="Zoom to layer" onclick="zoomToLayer(${L.Util.stamp(layer)}); return false;"><i class="icon-zoom_out_map" style="color: #777"></i></a>
-      <a class="layer-btn" href="#" title="Remove layer" onclick="removeLayer(${L.Util.stamp(layer)}, '${name}', 'overlays', '${key}'); return false;"><i class="icon-delete" style="color: red"></i></a>
+      <a class="layer-btn" href="#" title="Zoom to layer" onclick="zoomToLayer(${L.Util.stamp(layer)}); return false;"><i class="icon-zoom_out_map" style="color: darkslategray; font-size: 22px;"></i></a>
+      <a class="layer-btn" href="#" title="Remove layer" onclick="removeLayer(${L.Util.stamp(layer)}, '${name}'); return false;"><i class="icon-delete" style="color: red; font-size: 22px;"></i></a>
     </span>
     <div style="clear: both;"></div>
   `);
@@ -383,33 +291,18 @@ function zoomToLayer(id) {
   }
 }
 
-function removeLayer(id, name, type, key) {
-  vex.dialog.confirm({
-    message: `Remove ${name}?`,
-    callback: function (value) {
-      if (value == true) {
-        const layer = layers[type][id];
-        if (!map.hasLayer(layer)) {
-          map.addLayer(layers[type][id]);
-        }
-        if (layer instanceof L.TileLayer.MBTiles) {
-          layer._db.close(); 
-        }
-        map.removeLayer(layer);
-        controls.layerCtrl.removeLayer(layer);
-
-        if (type == "basemaps") {
-          basemapStorage.removeItem(key).then(function () {
-            console.log("saved basemap removed!");
-          });
-        } else if (type == "overlays") {
-          fileStorage.removeItem(key).then(function () {
-            console.log("saved layer removed!");
-          });
-        }
-      }
+function removeLayer(id, name) {
+  if (confirm(`Remove ${name}?`)) {
+    const layer = layers.overlays[id];
+    if (!map.hasLayer(layer)) {
+      map.addLayer(layers.overlays[id]);
     }
-  })
+    if (layer instanceof L.TileLayer.MBTiles) {
+      layer._db.close(); 
+    }
+    map.removeLayer(layer);
+    controls.layerCtrl.removeLayer(layer);
+  }
 }
 
 function changeOpacity(id) {
@@ -437,16 +330,10 @@ function formatProperty(value) {
 }
 
 function showLoader() {
-  // const loadingIcon = document.getElementById("loading-icon");
-  // loadingIcon.classList.remove("fa-map-marked-alt");
-  // loadingIcon.classList.add("fa-spinner", "fa-spin");
   document.getElementById("progress-bar").style.display = "block";
 }
 
 function hideLoader() {
-  // const loadingIcon = document.getElementById("loading-icon");
-  // loadingIcon.classList.remove("fa-spin", "fa-spinner");
-  // loadingIcon.classList.add("fa-map-marked-alt");
   document.getElementById("progress-bar").style.display = "none";
 }
 
@@ -461,182 +348,53 @@ function switchBaseLayer(name) {
   }
 }
 
-function showInfo() {
-  vex.dialog.open({
-    unsafeMessage: `
-      <p>Welcome to <strong>GPSMap.app</strong>, an offline capable map viewer with GPS integration!</p>
-      <p>Tap the layers button to view online basemaps, toggle layer visibility, and manage saved layers.</p>
-      <p>Use the buttons below to import and save MBTiles, GeoJSON, KML, or GPX files directly from your device or the web.</p>
-      <p>Contact: <a style="color: #0078A8;" href="mailto:mcbride.bryan@gmail.com?subject=GPSMap.app">mcbride.bryan@gmail.com</a></p>
-      <hr>
-    `,
-    input: [
-      "<div style='width: 100%; margin: 0px 0px 15px 0px;'><input type='checkbox' id='import-file' name='import-file' value='import' checked='checked' onclick='this.checked ? importFile = true : importFile = false;'><label for='import-file'> Import file? Check to import and save file or uncheck to temporarily load file in memory.</label></div>",
-      "<input type='button' class='vex-dialog-button vex-dialog-button-primary' style='width: 100%; margin: 0px 0px 15px 0px;' value='Add Local File' onclick='fileInput.click(); vex.closeAll(); return false;'>",
-      "<input type='button' class='vex-dialog-button vex-dialog-button-primary' style='width: 100%; margin: 0px 0px 15px 0px;' value='Add Remote Layer' onclick='layerInput(); return false;'>"
-    ].join(''),
-    buttons: [{
-      type: "submit",
-      text: "Close",
-      className: "vex-dialog-button-secondary"
-    }]
-  })
-}
-
-function layerInput() {
-  vex.closeTop();
-  vex.dialog.open({
-    message: "Enter layer information below:",
-    input: [
-      "<input name='name' type='text' placeholder='Name' required />",
-      "<input name='url' type='text' placeholder='URL' required />",
-      `<select name='type' id='layer-type'>
-        <option value='xyz'>XYZ</option>
-        <option value='wms'>WMS</option>
-        <option value='mbtiles'>MBTiles</option>
-        <option value='geojson'>GeoJSON</option>
-      </select>`,
-      "<input name='layers' id='wms-layers' type='text' placeholder='WMS Layer(s)' style='display: none;' />",
-    ].join(''),
-    buttons: [{
-      type: "submit",
-      text: "OK",
-      className: "vex-dialog-button-primary"
-    }, {
-      type: "button",
-      text: "Cancel",
-      className: "vex-dialog-button-secondary",
-      click: function(e) {
-        this.close();
-      }
-    }],
-    callback: function (data) {
-      if (data) {
-        data.key = Date.now().toString();
-        if (data.type == "geojson" || data.type == "mbtiles") {
-          fetchFile(data.name, data.url, data.url, data.type);
-        } else {
-          addBasemap(data.name, data.url, data.key, data.type, data.layers, true);
-        }
-      }
-    },
-    afterOpen: function() {
-      const typeEl = document.getElementById("layer-type");
-      const layersEl = document.getElementById("wms-layers");
-      L.DomEvent.on(typeEl, "change", function (e) {
-        if (typeEl.value == "wms") {
-          layersEl.style.display = "";
-          layersEl.required = true;
-        } else {
-          layersEl.style.display = "none";
-          layersEl.required = false;
-        }
-      });
+function loadBasemapConfig(file) {
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const config = JSON.parse(reader.result);
+    if (confirm("Are you sure you want to overwrite the default basemaps?")) {
+      loadCustomBasemaps(config);
+      localStorage.setItem("basemapConfig", JSON.stringify(config));
     }
-  })
+  }
+  reader.readAsText(file);
 }
 
-function addBasemap(name, url, key, type, wmsLayers, active) {
-  const value = {
-    "name": name,
-    "url": url,
-    "type": type,
-    "layers": wmsLayers
-  };
-  basemapStorage.setItem(key, value).then(function (value) {
+function loadCustomBasemaps(config) {
+  const basemaps = Object.keys(layers.basemaps);
+  for (const layer of basemaps) {
+    map.removeLayer(layers.basemaps[layer]);
+    controls.layerCtrl.removeLayer(layers.basemaps[layer]);
+  }
+  layers.basemaps = {};
+  config.forEach((element, index) => {
     let layer = null;
-    if (type == "wms") {
-      layer = L.tileLayer.wms(value.url, {
-        maxNativeZoom: 18,
+    if (element.type == "wms") {
+      layer = L.tileLayer.wms(element.url, {
+        maxNativeZoom: element.maxZoom ? element.maxZoom : 18,
         maxZoom: map.getMaxZoom(),
-        layers: value.layers,
-        format: "image/png"
+        layers: element.layers,
+        format: element.format ? element.format : "image/png",
+        attribution: element.attribution ? element.attribution : ""
       });
-    } else if (type == "xyz") {
-    layer = L.tileLayer(value.url, {
-        maxNativeZoom: 18,
-        maxZoom: map.getMaxZoom()
+    } else if (element.type == "xyz") {
+      layer = L.tileLayer(element.url, {
+        maxNativeZoom: element.maxZoom ? element.maxZoom : 18,
+        maxZoom: map.getMaxZoom(),
+        attribution: element.attribution ? element.attribution : ""
       }); 
     }
-
-    controls.layerCtrl.addBaseLayer(layer, `
-      <span>${name}</span>
-      <span style="float: right; line-height: 22px;">
-        <a class="layer-btn" href="#" title="Remove layer" onclick="removeLayer(${L.Util.stamp(layer)}, '${name}', 'basemaps', ${key}); return false;"><i class="icon-delete" style="color: red"></i></a>
-      </span>
-      <div style="clear: both;"></div>
-    `);
-
-    if (active) {
-      switchBaseLayer(null);
-      layer.addTo(map);  
+    if (index == 0) {
+      layer.addTo(map);
     }
-    
-    layers.basemaps[L.Util.stamp(layer)] = layer;
-  }).catch(function(err) {
-    alert("Error saving data!");
+    layers.basemaps[element.name] = layer;
+    controls.layerCtrl.addBaseLayer(layer, element.name);
   });
+  controls.layerCtrl.addBaseLayer(L.tileLayer("", {maxZoom: map.getMaxZoom()}), "None");
 }
 
-function loadBasemaps() {
-  basemapStorage.length().then(function(numberOfKeys) {
-    if (numberOfKeys > 0) {
-      basemapStorage.iterate(function(value, key, iterationNumber) {
-        addBasemap(value.name, value.url, key, value.type, value.layers, false);
-      }).then(function() {
-        // console.log("saved basemaps loaded!");
-      }).catch(function(err) {
-        alert("Error loading saved data!");
-      });
-    } else {
-      // console.log("no saved layers!");
-    }
-  }).catch(function(err) {
-    console.log(err);
-  });
-}
-
-function loadOverlays() {
-  fileStorage.length().then(function(numberOfKeys) {
-    if (numberOfKeys > 0) {
-      showLoader();
-      fileStorage.iterate(function(value, key, iterationNumber) {
-        if (value.type == "mbtiles") {
-          createRasterLayer(key, value.name, value.data, (numberOfKeys == 1 ? true : false));
-        } else if (value.type == "geojson") {
-          createVectorLayer(key, value.name, value.data, false);
-        }
-      }).then(function() {
-        hideLoader();
-      }).catch(function(err) {
-        alert("Error loading saved data!");
-      });
-    } else {
-      hideLoader();
-    }
-  }).catch(function(err) {
-    console.log(err);
-  });
-}
-
-function loadURLparams() {
-  const urlParams = new URLSearchParams(window.location.search);
-  if (urlParams.has("file")) {
-    const url = urlParams.get("file");
-    fileStorage.keys().then(function(keys) {
-       if (keys.includes(url)) {
-        //  console.log("file available in storage!");
-       } else {
-        const key = url;
-        const name = urlParams.has("name") ? urlParams.get("name") : "Remote File";
-        const type = urlParams.has("type") ? urlParams.get("type") : "mbtiles";
-        fetchFile(name, url, key, type);
-       }
-    }).catch(function(err) {
-      console.log(err);
-    });
-    window.history.replaceState(null, null, window.location.pathname);
-  }
+function showInfo() {
+  alert("Welcome to GPSMap.app, an offline capable map viewer with GPS integration!\n\n- Tap the + button to load a raster MBTiles, GeoJSON, KML, or GPX file directly from your device or cloud storage.\n- Tap the layers button to view online basemaps and manage offline layers.\n\nDeveloped by Bryan McBride - mcbride.bryan@gmail.com");
 }
 
 // Drag and drop files
@@ -666,19 +424,37 @@ window.addEventListener("offline",  function(e) {
   switchBaseLayer("None");
 });
 
+document.querySelector(".leaflet-control-layers-base").addEventListener("contextmenu", e => {
+  e.preventDefault();
+  let fileInput = L.DomUtil.create("input", "hidden");
+  fileInput.type = "file";
+  fileInput.accept = ".json";
+  fileInput.addEventListener("change", function () {
+    const file = fileInput.files[0];
+    loadBasemapConfig(file);
+    this.value = "";
+  }, false);
+  fileInput.click();
+});
+
+document.addEventListener("DOMContentLoaded", function(){
+  showLoader();
+  controls.locateCtrl.start();
+  if (localStorage.getItem("basemapConfig")) {
+    loadCustomBasemaps(JSON.parse(localStorage.getItem("basemapConfig")))
+  }
+});
+
 initSqlJs({
   locateFile: function() {
-    showLoader();
     return "assets/vendor/sqljs-1.4.0/sql-wasm.wasm";
   }
 }).then(function(SQL){
-  vex.defaultOptions.className = "vex-theme-top";
-  navigator.onLine ? null : switchBaseLayer("None");
+  if (!navigator.onLine) {
+    switchBaseLayer("None");
+  } else if (localStorage.getItem("basemap")) {
+    switchBaseLayer(localStorage.getItem("basemap"));
+  }
   document.getElementsByClassName("leaflet-control-layers")[0].style.maxHeight = `${(document.getElementById("map").offsetHeight * .75)}px`;
   document.getElementsByClassName("leaflet-control-layers")[0].style.maxWidth = `${(document.getElementById("map").offsetWidth * .75)}px`;
-  loadOverlays();
-  loadURLparams();
 });
-
-loadBasemaps();
-controls.locateCtrl.start();

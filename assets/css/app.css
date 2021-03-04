@@ -36,6 +36,9 @@ table tr:nth-child(even) {
 .leaflet-control-layers label {
   font-weight: normal;
   margin-bottom: 0px;
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 .leaflet-control-layers-overlays label {
   border-bottom: 1px solid #ddd;
@@ -131,7 +134,7 @@ table tr:nth-child(even) {
   color: #444;
   cursor: pointer;
 }
-.icon-info, .icon-gps_fixed, .icon-gps_not_fixed {
+.icon-add, .icon-delete, .icon-gps_fixed, .icon-gps_not_fixed, .icon-gps_off {
   font-size: 24px;
 }
 [class^="icon-"], [class*=" icon-"] {

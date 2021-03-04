@@ -1,0 +1,26 @@
+[{
+  "name": "Streets",
+  "url": "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.@2xpng",
+  "type": "xyz",
+  "maxZoom": 18,
+  "attribution": "© <a href='http://www.openstreetmap.org/copyright'>OpenStreetMap</a> contributors, © <a href='https://carto.com/attribution'>CARTO</a>"
+}, {
+  "name": "Topo",
+  "url": "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer/tile/{z}/{y}/{x}",
+  "type": "xyz",
+  "maxZoom": 16,
+  "attribution": "USGS"
+}, {
+  "name": "Charts",
+  "url": "https://tileservice.charts.noaa.gov/tiles/50000_1/{z}/{x}/{y}.png",
+  "type": "xyz",
+  "maxZoom": 18,
+  "attribution": "NOAA"
+}, {
+  "name": "NYS Orthos",
+  "url": "https://orthos.its.ny.gov/ArcGIS/services/wms/Latest/MapServer/WMSServer",
+  "type": "wms",
+  "maxZoom": 18,
+  "layers": "0,1,2,3",
+  "attribution": "<a href='https://orthos.its.ny.gov'>NYS ITS GIS Program Office</a>"
+}]

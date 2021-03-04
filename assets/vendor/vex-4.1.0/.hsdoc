@@ -1,5 +1,0 @@
-title: "vex"
-description: "Dialogs for the 21st century"
-source: "*.js"
-examples: "**/*.md"
-assets: "{dist/js/vex.js,dist/js/vex.combined.js,dist/css/vex.css,dist/css/vex-theme-*.css,docs/welcome/index.html,docs/vex.gif}"
