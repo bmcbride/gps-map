@@ -10,6 +10,7 @@ const basemapStorage = localforage.createInstance({
 
 const map = L.map("map", {
   zoomSnap: 0,
+  tap: false,
   maxZoom: 22,
   zoomControl: false,
   renderer: L.canvas({
