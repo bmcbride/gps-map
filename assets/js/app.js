@@ -213,7 +213,7 @@ function createVectorLayer(name, data) {
       }
       table += "</table></div>";
       layer.bindPopup(table, {
-        closeButton: false,
+        // closeButton: false,
         maxHeight: 300,
         maxWidth: 250
       });

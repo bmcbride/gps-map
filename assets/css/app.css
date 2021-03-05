@@ -17,11 +17,17 @@ table th, td {
 table tr:nth-child(even) {
   background-color: #f7f7f7;
 }
-/* .vex {
-  margin: 15px;
-} */
 .leaflet-popup-close-button {
-  display: none;
+  /* display: none; */
+  top: -8px !important;
+  right: -8px !important;
+  padding: 2px !important;
+  border-radius: 50% !important;
+  box-shadow: 0 1px 5px rgba(0,0,0,0.65) !important;
+  height: 16px !important;
+  width: 16px !important;
+  background: darkgray !important;
+  color: white !important;
 }
 .leaflet-popup-content-wrapper {
   padding: 1px;
