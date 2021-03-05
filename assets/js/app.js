@@ -231,7 +231,9 @@ function createVectorLayer(name, data) {
             pointToLayer: function (feature, latlng) {
               return L.circleMarker(latlng, {
                 radius: radius,
-                color: "#00FFFF"
+                color: "#00FFFF",
+                fillColor: "#00FFFF",
+                fillOpacity: 1
               }); 
             }
           }))
