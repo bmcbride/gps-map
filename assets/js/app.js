@@ -63,7 +63,7 @@ L.Control.AddFile = L.Control.extend({
   onAdd: function(map) {
     fileInput = L.DomUtil.create("input", "hidden");
     fileInput.type = "file";
-    fileInput.accept = ".mbtiles, .geojson, .kml, .gpx";
+    fileInput.accept = ".mbtiles, .geojson, .kml, .gpx, .csv";
     fileInput.style.display = "none";
     
     fileInput.addEventListener("change", function () {
@@ -144,11 +144,11 @@ function handleFile(file) {
 
   if (file.name.endsWith(".mbtiles")) {
     loadRaster(file, name);
-  } else if (file.name.endsWith(".geojson") || file.name.endsWith(".kml") || file.name.endsWith(".gpx")) {
+  } else if (file.name.endsWith(".geojson") || file.name.endsWith(".kml") || file.name.endsWith(".gpx") || file.name.endsWith(".csv")) {
     const format = file.name.split(".").pop();
     loadVector(file, name, format);
   } else {
-    alert("MBTiles, GeoJSON, KML, and GPX files supported.");
+    alert("MBTiles, GeoJSON, KML, GPX, and CSV files supported.");
     hideLoader();
   }
 }
@@ -166,6 +166,10 @@ function loadVector(file, name, format) {
     } else if (format == "gpx") {
       const gpx = (new DOMParser()).parseFromString(reader.result, "text/xml");
       geojson = toGeoJSON.gpx(gpx);
+    } else if (format == "csv") {
+      csv2geojson.csv2geojson(reader.result, function(err, data) {
+        geojson = data;
+      });
     }
 
     createVectorLayer(name, geojson);
@@ -394,7 +398,7 @@ function loadCustomBasemaps(config) {
 }
 
 function showInfo() {
-  alert("Welcome to GPSMap.app, an offline capable map viewer with GPS integration!\n\n- Tap the + button to load a raster MBTiles, GeoJSON, KML, or GPX file directly from your device or cloud storage.\n- Tap the layers button to view online basemaps and manage offline layers.\n\nDeveloped by Bryan McBride - mcbride.bryan@gmail.com");
+  alert("Welcome to GPSMap.app, an offline capable map viewer with GPS integration!\n\n- Tap the + button to load a raster MBTiles, GeoJSON, KML, GPX, or CSV file directly from your device or cloud storage.\n- Tap the layers button to view online basemaps and manage offline layers.\n\nDeveloped by Bryan McBride - mcbride.bryan@gmail.com");
 }
 
 // Drag and drop files
