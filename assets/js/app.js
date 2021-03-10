@@ -1,3 +1,8 @@
+const mapStore = localforage.createInstance({
+  name: "maps",
+  storeName: "saved_maps"
+});
+
 const map = L.map("map", {
   zoomSnap: 0,
   tap: false,
@@ -55,7 +60,8 @@ const layers = {
   },
 
   select: L.featureGroup(null).addTo(map),
-  overlays: {}
+  overlays: {},
+  groups: {}
 };
 
 /*** Begin custom input control for adding local file ***/
@@ -102,7 +108,7 @@ const controls = {
 
   locateCtrl: L.control.locate({
     icon: "icon-gps_fixed",
-    iconLoading: "icon-gps_not_fixed",
+    iconLoading: "spinner icon-gps_fixed",
     setView: "untilPan",
     cacheLocation: true,
     position: "bottomright",
@@ -271,14 +277,14 @@ function createRasterLayer(name, data) {
   layers.overlays[L.Util.stamp(layer)] = layer;
 }
 
-function addOverlayLayer(layer, name) {
+function addOverlayLayer(layer, name, group) {
   hideLoader();
   controls.layerCtrl.addOverlay(layer, `
     ${name.replace("_", " ")}<br>
     <span class="layer-buttons">
       <input type="range" value="1" step="0.1" min="0" max="1" data-layer="${L.Util.stamp(layer)}" style="width: 100%;" oninput="changeOpacity(${L.Util.stamp(layer)});">
       <a class="layer-btn" href="#" title="Zoom to layer" onclick="zoomToLayer(${L.Util.stamp(layer)}); return false;"><i class="icon-zoom_out_map" style="color: darkslategray; font-size: 22px;"></i></a>
-      <a class="layer-btn" href="#" title="Remove layer" onclick="removeLayer(${L.Util.stamp(layer)}, '${name}'); return false;"><i class="icon-delete" style="color: red; font-size: 22px;"></i></a>
+      <a class="layer-btn" href="#" title="Remove layer" onclick="removeLayer(${L.Util.stamp(layer)}, '${name}', '${group ? group : ''}'); return false;"><i class="icon-delete" style="color: red; font-size: 22px;"></i></a>
     </span>
     <div style="clear: both;"></div>
   `);
@@ -287,9 +293,10 @@ function addOverlayLayer(layer, name) {
 function zoomToLayer(id) {
   const layer = layers.overlays[id];
   if (!map.hasLayer(layer)) {
-    map.addLayer(layers.overlays[id]);
+    // map.addLayer(layers.overlays[id]);
+    alert("Layer must be active first!");
   }
-  if (layer.options.bounds) {
+  else if (layer.options.bounds) {
     map.fitBounds(layer.options.bounds);
   }
   else {
@@ -297,17 +304,24 @@ function zoomToLayer(id) {
   }
 }
 
-function removeLayer(id, name) {
+function removeLayer(id, name, group) {
   if (confirm(`Remove ${name}?`)) {
     const layer = layers.overlays[id];
-    if (!map.hasLayer(layer)) {
-      map.addLayer(layers.overlays[id]);
+    if (map.hasLayer(layer)) {
+      map.removeLayer(layer);
     }
     if (layer instanceof L.TileLayer.MBTiles) {
       layer._db.close(); 
     }
-    map.removeLayer(layer);
-    controls.layerCtrl.removeLayer(layer);
+    if (group) {
+      const groupLayer = layers.groups[group];
+      const key = groupLayer.options.key;
+      mapStore.removeItem(key).then(function () {
+        controls.layerCtrl.removeLayer(groupLayer);
+      });
+    } else {
+      controls.layerCtrl.removeLayer(layer);
+    }
   }
 }
 
@@ -315,9 +329,10 @@ function changeOpacity(id) {
   const value = document.querySelector(`[data-layer='${id}']`).value;
   const layer = layers.overlays[id];
   if (!map.hasLayer(layer)) {
-    map.addLayer(layers.overlays[id]);
+    // map.addLayer(layers.overlays[id]);
+    alert("Layer must be active first!");
   }
-  if (layer instanceof L.TileLayer.MBTiles || layer instanceof L.ImageOverlay) {
+  else if (layer instanceof L.TileLayer.MBTiles) {
     layer.setOpacity(value);
   } else if (layer instanceof L.GeoJSON) {
     layer.setStyle({
@@ -403,11 +418,99 @@ function showInfo() {
   alert("Welcome to GPSMap.app, an offline capable map viewer with GPS integration!\n\n- Tap the + button to load a raster MBTiles, GeoJSON, KML, GPX, or CSV file directly from your device or cloud storage.\n- Tap the layers button to view online basemaps and manage offline layers.\n\nDeveloped by Bryan McBride - mcbride.bryan@gmail.com");
 }
 
+function loadSavedMaps() {
+  const urlParams = new URLSearchParams(window.location.search);
+  mapStore.length().then(function(numberOfKeys) {
+    if (!urlParams.has("map")/*&& numberOfKeys != 1*/) {
+      controls.locateCtrl.start();
+    }
+    if (numberOfKeys > 0) {
+      mapStore.iterate(function(value, key, iterationNumber) {
+        const group = L.layerGroup(null, {key: key});
+        const groupID = L.Util.stamp(group);
+        layers.groups[groupID] = group;
+        addOverlayLayer(group, value.name, groupID);
+        group.once("add", function(e) {
+          const layer = L.tileLayer.mbTiles(value.mbtiles, {
+            autoScale: true,
+            fitBounds: (urlParams.has("map") && urlParams.get("map") == key) ? true : /*(numberOfKeys == 1) ? true :*/ false,
+            updateWhenIdle: false,
+            zIndex: 10
+          });
+          group.addLayer(layer);
+          layers.overlays[groupID] = layer;
+        });
+        if (/*(numberOfKeys == 1) ||*/ (urlParams.has("map") && urlParams.get("map") == key)) {
+          map.addLayer(group);
+          switchBaseLayer("None");
+        }
+      }).then(function() {
+        // console.log("saved maps loaded!");
+      }).catch(function(err) {
+        console.log(err);
+      });
+    }
+  }).catch(function(err) {
+    console.log(err);
+  });
+}
+
+function loadURLparams() {
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.has("map")) {
+    const url = urlParams.get("map");
+    mapStore.keys().then(function(keys) {
+      if (!keys.includes(url)) {
+        fetchFile(url);
+      }
+    }).catch(function(err) {
+      console.log(err);
+    });
+    // window.history.replaceState(null, null, window.location.pathname);
+  }
+}
+
+function fetchFile(url) {
+  if (navigator.onLine) {
+    showLoader();
+    fetch(url)
+      .then(response => response.arrayBuffer())
+      .then(data => {
+        hideLoader();
+        const layer = L.tileLayer.mbTiles(data, {
+          autoScale: true,
+          fitBounds: true,
+          updateWhenIdle: false
+        }).on("databaseloaded", function(e) {
+          const name = layer.options.name ? layer.options.name : url.split("/").pop().split(".").slice(0, -1).join(".");
+          const value = {
+            "name": layer.options.name,
+            "mbtiles": data
+          };
+          mapStore.setItem(url, value).then(function (value) {
+            addOverlayLayer(layer, name);
+          }).catch(function(err) {
+            alert("Error saving data!");
+          }); 
+        }).addTo(map);
+        layers.overlays[L.Util.stamp(layer)] = layer; 
+      })
+      .catch((error) => {
+        hideLoader();
+        console.error("Error:", error);
+        alert("Error fetching remote file...");
+      });
+  } else {
+    alert("Must be online to fetch data!");
+    hideLoader();
+  }
+}
+
 // Drag and drop files
 const dropArea = document.getElementById("map");
 
 ["dragenter", "dragover", "dragleave", "drop"].forEach(eventName => {
-  dropArea.addEventListener(eventName, function(e) {
+  dropArea.addEventListener(eventName, e => {
     e.preventDefault();
     e.stopPropagation();
   }, false);
@@ -421,12 +524,12 @@ const dropArea = document.getElementById("map");
   dropArea.addEventListener(eventName, hideLoader, false);
 });
 
-dropArea.addEventListener("drop", function(e) {
+dropArea.addEventListener("drop", e => {
   const file = e.dataTransfer.files[0];
   handleFile(file);
 }, false);
 
-window.addEventListener("offline",  function(e) {
+window.addEventListener("offline", e => {
   switchBaseLayer("None");
 });
 
@@ -445,10 +548,7 @@ document.querySelector(".leaflet-control-layers-base").addEventListener("context
 
 document.addEventListener("DOMContentLoaded", function(){
   showLoader();
-  controls.locateCtrl.start();
-  if (localStorage.getItem("basemapConfig")) {
-    loadCustomBasemaps(JSON.parse(localStorage.getItem("basemapConfig")))
-  }
+  // controls.locateCtrl.start();
 });
 
 initSqlJs({
@@ -456,6 +556,8 @@ initSqlJs({
     return "assets/vendor/sqljs-1.4.0/sql-wasm.wasm";
   }
 }).then(function(SQL){
+  loadURLparams();
+  loadSavedMaps();
   if (!navigator.onLine) {
     switchBaseLayer("None");
   } else if (localStorage.getItem("basemap")) {

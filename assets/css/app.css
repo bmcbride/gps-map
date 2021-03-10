@@ -26,8 +26,8 @@ table tr:nth-child(even) {
   box-shadow: 0 1px 5px rgba(0,0,0,0.65) !important;
   height: 16px !important;
   width: 16px !important;
-  background: darkgray !important;
-  color: white !important;
+  background: white !important;
+  color: gray !important;
 }
 .leaflet-popup-content-wrapper {
   padding: 1px;
@@ -150,6 +150,18 @@ table tr:nth-child(even) {
   .leaflet-control-layers-list {
     font-size: medium;
   }
+}
+.spinner {
+	display: inline-block;
+	animation: anim-rotate 2s infinite linear;
+}
+@keyframes anim-rotate {
+	0% {
+		transform: rotate(0);
+	}
+	100% {
+		transform: rotate(360deg);
+	}
 }
 /* Progress Bar https://codepen.io/holdencreative/pen/vEVbwv */
 .progress {
