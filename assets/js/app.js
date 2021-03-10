@@ -266,13 +266,25 @@ function loadRaster(file, name) {
 }
 
 function createRasterLayer(name, data) {
+  const key = Date.now().toString()
   const layer = L.tileLayer.mbTiles(data, {
     autoScale: true,
     fitBounds: true,
-    updateWhenIdle: false
+    updateWhenIdle: false,
+    key: key
   }).on("databaseloaded", function(e) {
     name = (layer.options.name ? layer.options.name : name);
-    addOverlayLayer(layer, name);
+    // addOverlayLayer(layer, name);
+    const value = {
+      "name": name,
+      "mbtiles": data
+    };
+    mapStore.setItem(key, value).then(function (value) {
+      addOverlayLayer(layer, name);
+    }).catch(function(err) {
+      alert("Error saving data!");
+    }); 
+
   }).addTo(map);
   layers.overlays[L.Util.stamp(layer)] = layer;
 }
@@ -312,6 +324,11 @@ function removeLayer(id, name, group) {
     }
     if (layer instanceof L.TileLayer.MBTiles) {
       layer._db.close(); 
+    }
+    if (layer.options && layer.options.key) {
+      mapStore.removeItem(layer.options.key).then(function () {
+        controls.layerCtrl.removeLayer(layer);
+      });
     }
     if (group) {
       const groupLayer = layers.groups[group];
@@ -484,7 +501,7 @@ function fetchFile(url) {
         }).on("databaseloaded", function(e) {
           const name = layer.options.name ? layer.options.name : url.split("/").pop().split(".").slice(0, -1).join(".");
           const value = {
-            "name": layer.options.name,
+            "name": name,
             "mbtiles": data
           };
           mapStore.setItem(url, value).then(function (value) {
