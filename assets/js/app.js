@@ -575,6 +575,9 @@ initSqlJs({
 }).then(function(SQL){
   loadURLparams();
   loadSavedMaps();
+  if (localStorage.getItem("basemapConfig")) {
+    loadCustomBasemaps(JSON.parse(localStorage.getItem("basemapConfig")));
+  }
   if (!navigator.onLine) {
     switchBaseLayer("None");
   } else if (localStorage.getItem("basemap")) {
