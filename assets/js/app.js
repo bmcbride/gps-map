@@ -67,9 +67,11 @@ const layers = {
 /*** Begin custom input control for adding local file ***/
 L.Control.AddFile = L.Control.extend({
   onAdd: function(map) {
+    const ua = window.navigator.userAgent;
+    const iOS = !!ua.match(/iP(ad|od|hone)/i);
     fileInput = L.DomUtil.create("input", "hidden");
     fileInput.type = "file";
-    fileInput.accept = ".mbtiles, .geojson, .kml, .gpx, .csv";
+    fileInput.accept = iOS ? "*" : ".mbtiles, .geojson, .kml, .gpx, .csv";
     fileInput.style.display = "none";
     
     fileInput.addEventListener("change", function () {
