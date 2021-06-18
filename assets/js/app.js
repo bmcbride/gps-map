@@ -4,7 +4,7 @@ const mapStore = localforage.createInstance({
 });
 
 const map = L.map("map", {
-  zoomSnap: 0,
+  zoomSnap: (typeof window.orientation == "undefined") ? 1 : 0,
   tap: false,
   maxZoom: 22,
   zoomControl: false,
