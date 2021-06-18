@@ -296,12 +296,19 @@ function addOverlayLayer(layer, name, group) {
   controls.layerCtrl.addOverlay(layer, `
     ${name.replace("_", " ")}<br>
     <span class="layer-buttons">
-      <input type="range" value="1" step="0.1" min="0" max="1" data-layer="${L.Util.stamp(layer)}" style="width: 100%;" oninput="changeOpacity(${L.Util.stamp(layer)});">
+      <input type="range" value="1" step="0.1" min="0" max="1" data-layer="${L.Util.stamp(layer)}" style="width: 100%;" oninput="changeOpacity(${L.Util.stamp(layer)});" ${group ? "disabled" : ""}>
       <a class="layer-btn" href="#" title="Zoom to layer" onclick="zoomToLayer(${L.Util.stamp(layer)}); return false;"><i class="icon-zoom_out_map" style="color: darkslategray; font-size: 22px;"></i></a>
       <a class="layer-btn" href="#" title="Remove layer" onclick="removeLayer(${L.Util.stamp(layer)}, '${name}', '${group ? group : ''}'); return false;"><i class="icon-delete" style="color: red; font-size: 22px;"></i></a>
     </span>
     <div style="clear: both;"></div>
   `);
+
+  layer.on("add", function(e) {
+    document.querySelector(`[data-layer='${L.Util.stamp(layer)}']`).disabled = false;
+  });
+  layer.on("remove", function(e) {
+    document.querySelector(`[data-layer='${L.Util.stamp(layer)}']`).disabled = true;
+  });
 }
 
 function zoomToLayer(id) {
@@ -327,7 +334,7 @@ function removeLayer(id, name, group) {
     if (layer instanceof L.TileLayer.MBTiles) {
       layer._db.close(); 
     }
-    if (layer.options && layer.options.key) {
+    if (layer && layer.options && layer.options.key) {
       mapStore.removeItem(layer.options.key).then(function () {
         controls.layerCtrl.removeLayer(layer);
       });
@@ -462,6 +469,7 @@ function loadSavedMaps() {
         if (/*(numberOfKeys == 1) ||*/ (urlParams.has("map") && urlParams.get("map") == key)) {
           map.addLayer(group);
           switchBaseLayer("None");
+          document.querySelector(`[data-layer='${groupID}']`).disabled = false;
         }
       }).then(function() {
         // console.log("saved maps loaded!");
