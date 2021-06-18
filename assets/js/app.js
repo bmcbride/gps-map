@@ -572,7 +572,7 @@ document.addEventListener("DOMContentLoaded", function(){
 
 initSqlJs({
   locateFile: function() {
-    return "assets/vendor/sqljs-1.4.0/sql-wasm.wasm";
+    return "assets/vendor/sqljs-1.5.0/sql-wasm.wasm";
   }
 }).then(function(SQL){
   loadURLparams();
