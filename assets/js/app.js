@@ -13,7 +13,7 @@ const map = L.map("map", {
     tolerance: 10
   })
 }).fitWorld();
-map.attributionControl.setPrefix("<a href='#' onclick='showInfo(); return false;'>About</a>");
+map.attributionControl.setPrefix(`<span id="status" style="color:${navigator.onLine ? "green" : "red"}">&#9673;</span> <a href="#" onclick="showInfo(); return false;">About</a>`);
 
 map.once("locationfound", function(e) {
   hideLoader();
@@ -533,6 +533,15 @@ function fetchFile(url) {
   }
 }
 
+function updateNetworkStatus() {
+  if (navigator.onLine) {
+    document.getElementById("status").style.color = "green";
+  } else {
+    switchBaseLayer("None");
+    document.getElementById("status").style.color = "red";
+  }
+}
+
 // Drag and drop files
 const dropArea = document.getElementById("map");
 
@@ -557,7 +566,11 @@ dropArea.addEventListener("drop", e => {
 }, false);
 
 window.addEventListener("offline", e => {
-  switchBaseLayer("None");
+  updateNetworkStatus();
+});
+
+window.addEventListener("online", e => {
+  updateNetworkStatus();
 });
 
 document.querySelector(".leaflet-control-layers-base").addEventListener("contextmenu", e => {
