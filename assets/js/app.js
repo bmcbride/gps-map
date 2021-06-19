@@ -192,15 +192,15 @@ function createVectorLayer(name, data) {
     bubblingMouseEvents: false,
     style: function (feature) {
       return {	
-        color: feature.properties["stroke"] ? feature.properties["stroke"] : feature.properties["marker-color"] ? feature.properties["marker-color"] : "#ff0000",
-        opacity: feature.properties["stroke-opacity"] ? feature.properties["stroke-opacity"] : 1.0,
-        weight: feature.properties["stroke-width"] ? feature.properties["stroke-width"] : 3,
-        fillColor: feature.properties["fill"] ? feature.properties["fill"] : feature.properties["marker-color"] ? feature.properties["marker-color"] : "#ff0000",
-        fillOpacity: feature.properties["fill-opacity"] ? feature.properties["fill-opacity"] : feature.geometry.type != "Point" ? 0.2 : feature.geometry.type == "Point" ? 1 : "",
+        color: feature.properties.hasOwnProperty("stroke") ? feature.properties["stroke"] : feature.properties["marker-color"] ? feature.properties["marker-color"] : "#ff0000",
+        opacity: feature.properties.hasOwnProperty("stroke-opacity") ? feature.properties["stroke-opacity"] : 1.0,
+        weight: feature.properties.hasOwnProperty("stroke-width") ? feature.properties["stroke-width"] : 3,
+        fillColor: feature.properties.hasOwnProperty("fill") ? feature.properties["fill"] : feature.properties["marker-color"] ? feature.properties["marker-color"] : "#ff0000",
+        fillOpacity: feature.properties.hasOwnProperty("fill-opacity") ? feature.properties["fill-opacity"] : feature.geometry.type != "Point" ? 0.2 : feature.geometry.type == "Point" ? 1 : "",
       };	
     },
     pointToLayer: function (feature, latlng) {	
-      const size = feature.properties["marker-size"] ? feature.properties["marker-size"] : "small";
+      const size = feature.properties.hasOwnProperty("marker-size") ? feature.properties["marker-size"] : "small";
       const sizes = {
         small: 4,
         medium: 6,
@@ -361,9 +361,17 @@ function changeOpacity(id) {
   else if (layer instanceof L.TileLayer.MBTiles) {
     layer.setOpacity(value);
   } else if (layer instanceof L.GeoJSON) {
-    layer.setStyle({
-      opacity: value,
-      fillOpacity: value
+    layer.eachLayer(function(layer){
+      if (layer.feature.properties["fill-opacity"] != 0) {
+        layer.setStyle({
+          fillOpacity: value
+        });
+      }
+      if (layer.feature.properties["opacity"] != 0) {
+        layer.setStyle({
+          opacity: value
+        });
+      }
     });
   }
 }
