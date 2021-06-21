@@ -3,6 +3,11 @@ const mapStore = localforage.createInstance({
   storeName: "saved_maps"
 });
 
+const featureStore = localforage.createInstance({
+  name: "maps",
+  storeName: "saved_features"
+});
+
 const map = L.map("map", {
   zoomSnap: (typeof window.orientation == "undefined") ? 1 : 0,
   tap: false,
@@ -100,7 +105,7 @@ L.control.addfile = function(opts) {
 
 const controls = {
   layerCtrl: L.control.layers(layers.basemaps, null, {
-    collapsed: true,
+    collapsed: false,
     position: "topright"
   }).addTo(map),
 
@@ -180,15 +185,17 @@ function loadVector(file, name, format) {
       });
     }
 
-    createVectorLayer(name, geojson);
+    createVectorLayer(name, geojson, null, true);
   }
 
   reader.readAsText(file);
 }
 
-function createVectorLayer(name, data) {
+function createVectorLayer(name, data, key, save) {
   let radius = 4;
+  var key = key ? key : Date.now().toString();
   const layer = L.geoJSON(data, {
+    key: key,
     bubblingMouseEvents: false,
     style: function (feature) {
       return {	
@@ -248,13 +255,26 @@ function createVectorLayer(name, data) {
         }
       });
     }
-    
   });
 
-  addOverlayLayer(layer, name);
-  layers.overlays[L.Util.stamp(layer)] = layer;
-  layer.addTo(map);
-  zoomToLayer(L.Util.stamp(layer));
+  if (save) {
+    const value = {
+      "name": name,
+      "features": data
+    };
+
+    featureStore.setItem(key, value).then(function (value) {
+      addOverlayLayer(layer, name, null, true);
+      layers.overlays[L.Util.stamp(layer)] = layer;
+      layer.addTo(map);
+      zoomToLayer(L.Util.stamp(layer));
+    }).catch(function(err) {
+      alert("Error saving data!");
+    });
+  } else {
+    addOverlayLayer(layer, name, null, true);
+    layers.overlays[L.Util.stamp(layer)] = layer;
+  }
 }
 
 function loadRaster(file, name) {
@@ -268,7 +288,7 @@ function loadRaster(file, name) {
 }
 
 function createRasterLayer(name, data) {
-  const key = Date.now().toString()
+  const key = Date.now().toString();
   const layer = L.tileLayer.mbTiles(data, {
     autoScale: true,
     fitBounds: true,
@@ -291,12 +311,12 @@ function createRasterLayer(name, data) {
   layers.overlays[L.Util.stamp(layer)] = layer;
 }
 
-function addOverlayLayer(layer, name, group) {
+function addOverlayLayer(layer, name, group, saved) {
   hideLoader();
   controls.layerCtrl.addOverlay(layer, `
     ${name.replace("_", " ")}<br>
     <span class="layer-buttons">
-      <input type="range" value="1" step="0.1" min="0" max="1" data-layer="${L.Util.stamp(layer)}" style="width: 100%;" oninput="changeOpacity(${L.Util.stamp(layer)});" ${group ? "disabled" : ""}>
+      <input type="range" value="1" step="0.1" min="0" max="1" data-layer="${L.Util.stamp(layer)}" style="width: 100%;" oninput="changeOpacity(${L.Util.stamp(layer)});" ${saved ? "disabled" : ""}>
       <a class="layer-btn" href="#" title="Zoom to layer" onclick="zoomToLayer(${L.Util.stamp(layer)}); return false;"><i class="icon-zoom_out_map" style="color: darkslategray; font-size: 22px;"></i></a>
       <a class="layer-btn" href="#" title="Remove layer" onclick="removeLayer(${L.Util.stamp(layer)}, '${name}', '${group ? group : ''}'); return false;"><i class="icon-delete" style="color: red; font-size: 22px;"></i></a>
     </span>
@@ -326,7 +346,7 @@ function zoomToLayer(id) {
 }
 
 function removeLayer(id, name, group) {
-  if (confirm(`Remove ${name}?`)) {
+  if (confirm(`Remove ${name.replace("_", " ")}?`)) {
     const layer = layers.overlays[id];
     if (map.hasLayer(layer)) {
       map.removeLayer(layer);
@@ -335,9 +355,15 @@ function removeLayer(id, name, group) {
       layer._db.close(); 
     }
     if (layer && layer.options && layer.options.key) {
-      mapStore.removeItem(layer.options.key).then(function () {
-        controls.layerCtrl.removeLayer(layer);
-      });
+      if (layer instanceof L.TileLayer.MBTiles) {
+        mapStore.removeItem(layer.options.key).then(function () {
+          controls.layerCtrl.removeLayer(layer);
+        }); 
+      } else if (layer instanceof L.GeoJSON) {
+        featureStore.removeItem(layer.options.key).then(function () {
+          controls.layerCtrl.removeLayer(layer);
+        }); 
+      }
     }
     if (group) {
       const groupLayer = layers.groups[group];
@@ -452,6 +478,22 @@ function showInfo() {
   alert("Welcome to GPSMap.app, an offline capable map viewer with GPS integration!\n\n- Tap the + button to load a raster MBTiles, GeoJSON, KML, GPX, or CSV file directly from your device or cloud storage.\n- Tap the layers button to view online basemaps and manage offline layers.\n\nDeveloped by Bryan McBride - mcbride.bryan@gmail.com");
 }
 
+function loadSavedFeatures() {
+  featureStore.length().then(function(numberOfKeys) {
+    if (numberOfKeys > 0) {
+      featureStore.iterate(function(value, key, iterationNumber) {
+        createVectorLayer(value.name, value.features, key, false);
+      }).then(function() {
+        // console.log("saved features loaded!");
+      }).catch(function(err) {
+        console.log(err);
+      });
+    }
+  }).catch(function(err) {
+    console.log(err);
+  });
+}
+
 function loadSavedMaps() {
   const urlParams = new URLSearchParams(window.location.search);
   mapStore.length().then(function(numberOfKeys) {
@@ -463,7 +505,7 @@ function loadSavedMaps() {
         const group = L.layerGroup(null, {key: key});
         const groupID = L.Util.stamp(group);
         layers.groups[groupID] = group;
-        addOverlayLayer(group, value.name, groupID);
+        addOverlayLayer(group, value.name, groupID, true);
         group.once("add", function(e) {
           const layer = L.tileLayer.mbTiles(value.mbtiles, {
             autoScale: true,
@@ -481,9 +523,12 @@ function loadSavedMaps() {
         }
       }).then(function() {
         // console.log("saved maps loaded!");
+        loadSavedFeatures();
       }).catch(function(err) {
         console.log(err);
       });
+    } else {
+      loadSavedFeatures();
     }
   }).catch(function(err) {
     console.log(err);
