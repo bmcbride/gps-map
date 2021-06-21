@@ -53,12 +53,6 @@ const layers = {
       attribution: "USGS",
     }),
 
-    "Charts": L.tileLayer("https://tileservice.charts.noaa.gov/tiles/50000_1/{z}/{x}/{y}.png", {
-      maxNativeZoom: 18,
-      maxZoom: map.getMaxZoom(),
-      attribution: "NOAA",
-    }),
-
     "None": L.tileLayer("", {
       maxZoom: map.getMaxZoom()
     })
