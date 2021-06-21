@@ -1,8 +1,8 @@
-importScripts('assets/vendor/workbox-6.0.2/workbox-sw.js');
+importScripts('assets/vendor/workbox-6.1.5/workbox-sw.js');
 
 workbox.setConfig({
   debug: false,
-  modulePathPrefix: 'assets/vendor/workbox-6.0.2/'
+  modulePathPrefix: 'assets/vendor/workbox-6.1.5/'
 });
 
 workbox.precaching.precacheAndRoute([
