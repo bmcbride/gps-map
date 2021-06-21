@@ -105,7 +105,7 @@ L.control.addfile = function(opts) {
 
 const controls = {
   layerCtrl: L.control.layers(layers.basemaps, null, {
-    collapsed: false,
+    collapsed: true,
     position: "topright"
   }).addTo(map),
 
