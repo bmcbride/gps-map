@@ -314,7 +314,7 @@ function createRasterLayer(name, data) {
 function addOverlayLayer(layer, name, group, saved) {
   hideLoader();
   controls.layerCtrl.addOverlay(layer, `
-    ${name.replace("_", " ")}<br>
+    ${name.replace(/_/g, " ")}<br>
     <span class="layer-buttons">
       <input type="range" value="1" step="0.1" min="0" max="1" data-layer="${L.Util.stamp(layer)}" style="width: 100%;" oninput="changeOpacity(${L.Util.stamp(layer)});" ${saved ? "disabled" : ""}>
       <a class="layer-btn" href="#" title="Zoom to layer" onclick="zoomToLayer(${L.Util.stamp(layer)}); return false;"><i class="icon-zoom_out_map" style="color: darkslategray; font-size: 22px;"></i></a>
@@ -346,7 +346,7 @@ function zoomToLayer(id) {
 }
 
 function removeLayer(id, name, group) {
-  if (confirm(`Remove ${name.replace("_", " ")}?`)) {
+  if (confirm(`Remove ${name.replace(/_/g, " ")}?`)) {
     const layer = layers.overlays[id];
     if (map.hasLayer(layer)) {
       map.removeLayer(layer);
