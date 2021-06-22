@@ -174,8 +174,16 @@ function loadVector(file, name, format) {
       const gpx = (new DOMParser()).parseFromString(reader.result, "text/xml");
       geojson = toGeoJSON.gpx(gpx);
     } else if (format == "csv") {
-      csv2geojson.csv2geojson(reader.result, function(err, data) {
-        geojson = data;
+      const columns = reader.result.split(/\n/).filter(Boolean)[0].split(",");
+      const options = {};
+      if (columns.includes("Y") && columns.includes("X")) {
+        options.latfield = "Y",
+        options.lonfield = "X"
+      }
+      csv2geojson.csv2geojson(reader.result, options, function(err, data) {
+        if (data) {
+          geojson = data;
+        }
       });
     }
 
