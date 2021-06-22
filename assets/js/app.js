@@ -503,7 +503,8 @@ function loadCustomBasemaps(config) {
     layers.basemaps[element.name] = layer;
     controls.layerCtrl.addBaseLayer(layer, element.name);
   });
-  controls.layerCtrl.addBaseLayer(L.tileLayer("", {maxZoom: map.getMaxZoom()}), "None");
+  layers.basemaps["None"] = L.tileLayer("", {maxZoom: map.getMaxZoom()});
+  controls.layerCtrl.addBaseLayer(layers.basemaps["None"], "None");
 }
 
 function showInfo() {
