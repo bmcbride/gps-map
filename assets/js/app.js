@@ -296,7 +296,7 @@ function createRasterLayer(name, data) {
       "mbtiles": data
     };
     mapStore.setItem(key, value).then(function (value) {
-      addOverlayLayer(layer, name);
+      addOverlayLayer(layer, name, null, false);
     }).catch(function(err) {
       alert("Error saving data!");
     }); 
@@ -307,6 +307,7 @@ function createRasterLayer(name, data) {
 
 function addOverlayLayer(layer, name, group, saved) {
   hideLoader();
+  const layerState = getLayerState();
   controls.layerCtrl.addOverlay(layer, `
     ${name.replace(/_/g, " ")}<br>
     <span class="layer-buttons">
@@ -316,12 +317,36 @@ function addOverlayLayer(layer, name, group, saved) {
     </span>
     <div style="clear: both;"></div>
   `);
+  updateLayerState(layerState);
 
   layer.on("add", function(e) {
     document.querySelector(`[data-layer='${L.Util.stamp(layer)}']`).disabled = false;
   });
   layer.on("remove", function(e) {
     document.querySelector(`[data-layer='${L.Util.stamp(layer)}']`).disabled = true;
+  });
+}
+
+function getLayerState() {
+  const layers = {};
+  document.querySelectorAll(".layer-buttons input").forEach(element => {
+    const id = element.getAttribute("data-layer");
+    const layer = map._layers[id];
+    layers[id] = {
+      disabled: map.hasLayer(layer) ? false : true,
+      opacity: element.value
+    }
+  });
+  return layers;
+}
+
+function updateLayerState(layers) {
+  document.querySelectorAll(".layer-buttons input").forEach(element => {
+    const id = element.getAttribute("data-layer");
+    if (layers[id]) {
+      element.disabled = layers[id].disabled;
+      element.value = layers[id].opacity;
+    }
   });
 }
 
@@ -341,6 +366,7 @@ function zoomToLayer(id) {
 
 function removeLayer(id, name, group) {
   if (confirm(`Remove ${name.replace(/_/g, " ")}?`)) {
+    const layerState = getLayerState();
     const layer = layers.overlays[id];
     if (map.hasLayer(layer)) {
       map.removeLayer(layer);
@@ -352,10 +378,12 @@ function removeLayer(id, name, group) {
       if (layer instanceof L.TileLayer.MBTiles) {
         mapStore.removeItem(layer.options.key).then(function () {
           controls.layerCtrl.removeLayer(layer);
+          updateLayerState(layerState);
         }); 
       } else if (layer instanceof L.GeoJSON) {
         featureStore.removeItem(layer.options.key).then(function () {
           controls.layerCtrl.removeLayer(layer);
+          updateLayerState(layerState);
         }); 
       }
     }
@@ -364,9 +392,11 @@ function removeLayer(id, name, group) {
       const key = groupLayer.options.key;
       mapStore.removeItem(key).then(function () {
         controls.layerCtrl.removeLayer(groupLayer);
+        updateLayerState(layerState);
       });
     } else {
       controls.layerCtrl.removeLayer(layer);
+      updateLayerState(layerState);
     }
   }
 }
