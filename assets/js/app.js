@@ -521,7 +521,7 @@ function loadSavedFeatures() {
 function loadSavedMaps() {
   const urlParams = new URLSearchParams(window.location.search);
   mapStore.length().then(function(numberOfKeys) {
-    if (!urlParams.has("map")/*&& numberOfKeys != 1*/) {
+    if (!urlParams.has("map") && numberOfKeys != 1) {
       controls.locateCtrl.start();
     }
     if (numberOfKeys > 0) {
@@ -533,14 +533,14 @@ function loadSavedMaps() {
         group.once("add", function(e) {
           const layer = L.tileLayer.mbTiles(value.mbtiles, {
             autoScale: true,
-            fitBounds: (urlParams.has("map") && urlParams.get("map") == key) ? true : /*(numberOfKeys == 1) ? true :*/ false,
+            fitBounds: (urlParams.has("map") && urlParams.get("map") == key) ? true : (numberOfKeys == 1) ? true : false,
             updateWhenIdle: false,
             zIndex: 10
           });
           group.addLayer(layer);
           layers.overlays[groupID] = layer;
         });
-        if (/*(numberOfKeys == 1) ||*/ (urlParams.has("map") && urlParams.get("map") == key)) {
+        if ((numberOfKeys == 1) || (urlParams.has("map") && urlParams.get("map") == key)) {
           map.addLayer(group);
           switchBaseLayer("None");
           document.querySelector(`[data-layer='${groupID}']`).disabled = false;
