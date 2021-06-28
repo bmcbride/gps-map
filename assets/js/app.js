@@ -22,7 +22,15 @@ map.attributionControl.setPrefix(`<span id="status" style="color:${navigator.onL
 
 map.once("locationfound", function(e) {
   hideLoader();
-  map.fitBounds(e.bounds, {maxZoom: 18});
+  if (Object.keys(layers.overlays).length == 1) {
+    setTimeout(function(){
+      map.fitBounds(Object.values(layers.overlays)[0].options.bounds);
+      controls.locateCtrl._userPanned = true;
+      controls.locateCtrl._updateContainerStyle();
+    }, 1);
+  } else {
+    map.fitBounds(e.bounds, {maxZoom: 18});
+  }
 });
 
 map.on("click", function(e) {
@@ -530,9 +538,9 @@ function loadSavedFeatures() {
 function loadSavedMaps() {
   const urlParams = new URLSearchParams(window.location.search);
   mapStore.length().then(function(numberOfKeys) {
-    if (!urlParams.has("map") && numberOfKeys != 1) {
+    /*if (!urlParams.has("map") && numberOfKeys != 1) {
       controls.locateCtrl.start();
-    }
+    }*/
     if (numberOfKeys > 0) {
       mapStore.iterate(function(value, key, iterationNumber) {
         const group = L.layerGroup(null, {key: key});
@@ -674,7 +682,7 @@ document.querySelector(".leaflet-control-layers-base").addEventListener("context
 
 document.addEventListener("DOMContentLoaded", function(){
   showLoader();
-  // controls.locateCtrl.start();
+  controls.locateCtrl.start();
 });
 
 initSqlJs({
