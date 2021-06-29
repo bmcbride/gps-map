@@ -25,8 +25,7 @@ map.once("locationfound", function(e) {
   if (Object.keys(layers.overlays).length == 1) {
     setTimeout(function(){
       map.fitBounds(Object.values(layers.overlays)[0].options.bounds);
-      controls.locateCtrl._userPanned = true;
-      controls.locateCtrl._updateContainerStyle();
+      controls.locateCtrl.stopFollowing();
     }, 1);
   } else {
     map.fitBounds(e.bounds, {maxZoom: 18});
@@ -374,9 +373,11 @@ function zoomToLayer(id) {
   }
   else if (layer.options.bounds) {
     map.fitBounds(layer.options.bounds);
+    controls.locateCtrl.stopFollowing();
   }
   else {
     map.fitBounds(layer.getBounds(), {padding: [20, 20]});
+    controls.locateCtrl.stopFollowing();
   }
 }
 
