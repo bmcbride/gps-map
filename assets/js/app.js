@@ -22,7 +22,7 @@ map.attributionControl.setPrefix(`<span id="status" style="color:${navigator.onL
 
 map.once("locationfound", function(e) {
   hideLoader();
-  if (Object.keys(layers.overlays).length == 1) {
+  if (Object.values(layers.overlays)[0] instanceof L.TileLayer.MBTiles) {
     setTimeout(function(){
       map.fitBounds(Object.values(layers.overlays)[0].options.bounds);
       controls.locateCtrl.stopFollowing();
