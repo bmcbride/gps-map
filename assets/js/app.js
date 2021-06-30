@@ -332,12 +332,16 @@ function addOverlayLayer(layer, name, group, saved) {
     </span>
     <div style="clear: both;"></div>
   `);
-  updateLayerState(layerState);
 
-  layer.on("add", function(e) {
+  setTimeout(() => {
+    updateLayerState(layerState);
+  }, 100);
+
+
+  layer.on("add", () => {
     document.querySelector(`[data-layer='${L.Util.stamp(layer)}']`).disabled = false;
   });
-  layer.on("remove", function(e) {
+  layer.on("remove", () => {
     document.querySelector(`[data-layer='${L.Util.stamp(layer)}']`).disabled = true;
   });
 }
