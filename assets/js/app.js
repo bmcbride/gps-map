@@ -20,10 +20,10 @@ const map = L.map("map", {
 }).fitWorld();
 map.attributionControl.setPrefix(`<span id="status" style="color:${navigator.onLine ? "green" : "red"}">&#9673;</span> <a href="#" onclick="showInfo(); return false;">About</a>`);
 
-map.once("locationfound", function(e) {
+map.once("locationfound", (e) => {
   hideLoader();
   if (Object.values(layers.overlays)[0] instanceof L.TileLayer.MBTiles) {
-    setTimeout(function(){
+    setTimeout(() =>{
       map.fitBounds(Object.values(layers.overlays)[0].options.bounds);
       controls.locateCtrl.stopFollowing();
     }, 1);
@@ -32,11 +32,11 @@ map.once("locationfound", function(e) {
   }
 });
 
-map.on("click", function(e) {
+map.on("click", (e) => {
   layers.select.clearLayers();
 });
 
-map.on("baselayerchange", function(e) {
+map.on("baselayerchange", (e) => {
   localStorage.setItem("basemap", e.name);
 });
 
@@ -99,7 +99,7 @@ L.Control.AddFile = L.Control.extend({
   }
 });
 
-L.control.addfile = function(opts) {
+L.control.addfile = (opts) => {
   return new L.Control.AddFile(opts);
 }
 /*** End custom control ***/
@@ -131,7 +131,7 @@ const controls = {
     metric: false,
     strings: {
       title: "My location",
-      popup: function(options) {
+      popup: (options) => {
         const loc = controls.locateCtrl._marker.getLatLng();
         return `<div style="text-align: center;">You are within ${Number(options.distance).toLocaleString()} ${options.unit}<br>from <strong>${loc.lat.toFixed(6)}</strong>, <strong>${loc.lng.toFixed(6)}</strong></div>`;
       }
@@ -140,7 +140,7 @@ const controls = {
       enableHighAccuracy: true,
       maxZoom: 18
     },
-    onLocationError: function(e) {
+    onLocationError: (e) => {
       hideLoader();
       document.querySelector(".leaflet-control-locate").getElementsByTagName("span")[0].className = "icon-gps_off";
       alert(e.message);
@@ -206,7 +206,7 @@ function createVectorLayer(name, data, key, save) {
   const layer = L.geoJSON(data, {
     key: key,
     bubblingMouseEvents: false,
-    style: function (feature) {
+    style: (feature) => {
       return {	
         color: feature.properties.hasOwnProperty("stroke") ? feature.properties["stroke"] : feature.properties["marker-color"] ? feature.properties["marker-color"] : "#ff0000",
         opacity: feature.properties.hasOwnProperty("stroke-opacity") ? feature.properties["stroke-opacity"] : 1.0,
@@ -215,7 +215,7 @@ function createVectorLayer(name, data, key, save) {
         fillOpacity: feature.properties.hasOwnProperty("fill-opacity") ? feature.properties["fill-opacity"] : feature.geometry.type != "Point" ? 0.2 : feature.geometry.type == "Point" ? 1 : "",
       };	
     },
-    pointToLayer: function (feature, latlng) {	
+    pointToLayer: (feature, latlng) => {	
       const size = feature.properties.hasOwnProperty("marker-size") ? feature.properties["marker-size"] : "small";
       const sizes = {
         small: 4,
@@ -227,7 +227,7 @@ function createVectorLayer(name, data, key, save) {
         radius: radius
       });
     },
-    onEachFeature: function (feature, layer) {
+    onEachFeature: (feature, layer) => {
       let table = "<div style='overflow:auto;'><table>";
       const hiddenProps = ["styleUrl", "styleHash", "styleMapHash", "stroke", "stroke-opacity", "stroke-width", "opacity", "fill", "fill-opacity", "icon", "scale", "coordTimes", "marker-size", "marker-color", "marker-symbol"];
       for (const key in feature.properties) {
@@ -242,17 +242,17 @@ function createVectorLayer(name, data, key, save) {
         maxWidth: 250
       });
       layer.on({
-        popupclose: function (e) {
+        popupclose: (e) => {
           layers.select.clearLayers();
         },
-        click: function (e) {
+        click: (e) => {
           layers.select.clearLayers();
           layers.select.addLayer(L.geoJSON(layer.toGeoJSON(), {
             style: {
               color: "#00FFFF",
               weight: 5
             },
-            pointToLayer: function (feature, latlng) {
+            pointToLayer: (feature, latlng) => {
               return L.circleMarker(latlng, {
                 radius: radius,
                 color: "#00FFFF",
@@ -272,12 +272,12 @@ function createVectorLayer(name, data, key, save) {
       "features": data
     };
 
-    featureStore.setItem(key, value).then(function (value) {
+    featureStore.setItem(key, value).then((value) => {
       addOverlayLayer(layer, name, null, true);
       layers.overlays[L.Util.stamp(layer)] = layer;
       layer.addTo(map);
       zoomToLayer(L.Util.stamp(layer));
-    }).catch(function(err) {
+    }).catch((err) => {
       alert("Error saving data!");
     });
   } else {
@@ -289,7 +289,7 @@ function createVectorLayer(name, data, key, save) {
 function loadRaster(file, name) {
   const reader = new FileReader();
 
-  reader.onload = function(e) {
+  reader.onload = (e) => {
     createRasterLayer(name, reader.result);
   }
 
@@ -303,16 +303,16 @@ function createRasterLayer(name, data) {
     fitBounds: true,
     updateWhenIdle: false,
     key: key
-  }).on("databaseloaded", function(e) {
+  }).on("databaseloaded", (e) => {
     name = (layer.options.name ? layer.options.name : name);
     // addOverlayLayer(layer, name);
     const value = {
       "name": name,
       "mbtiles": data
     };
-    mapStore.setItem(key, value).then(function (value) {
+    mapStore.setItem(key, value).then((value) => {
       addOverlayLayer(layer, name, null, false);
-    }).catch(function(err) {
+    }).catch((err) => {
       alert("Error saving data!");
     }); 
 
@@ -411,7 +411,7 @@ function removeLayer(id, name, group) {
     if (group) {
       const groupLayer = layers.groups[group];
       const key = groupLayer.options.key;
-      mapStore.removeItem(key).then(function () {
+      mapStore.removeItem(key).then(() => {
         controls.layerCtrl.removeLayer(groupLayer);
         updateLayerState(layerState);
       });
@@ -432,7 +432,7 @@ function changeOpacity(id) {
   else if (layer instanceof L.TileLayer.MBTiles) {
     layer.setOpacity(value);
   } else if (layer instanceof L.GeoJSON) {
-    layer.eachLayer(function(layer){
+    layer.eachLayer((layer) => {
       if (layer.feature.properties["fill-opacity"] != 0) {
         layer.setStyle({
           fillOpacity: value
@@ -476,7 +476,7 @@ function switchBaseLayer(name) {
 
 function loadBasemapConfig(file) {
   const reader = new FileReader();
-  reader.onload = function(e) {
+  reader.onload = (e) => {
     const config = JSON.parse(reader.result);
     if (confirm("Are you sure you want to overwrite the default basemaps?")) {
       loadCustomBasemaps(config);
@@ -525,34 +525,34 @@ function showInfo() {
 }
 
 function loadSavedFeatures() {
-  featureStore.length().then(function(numberOfKeys) {
+  featureStore.length().then((numberOfKeys) => {
     if (numberOfKeys > 0) {
-      featureStore.iterate(function(value, key, iterationNumber) {
+      featureStore.iterate((value, key, iterationNumber) => {
         createVectorLayer(value.name, value.features, key, false);
-      }).then(function() {
+      }).then(() => {
         // console.log("saved features loaded!");
-      }).catch(function(err) {
+      }).catch((err) => {
         console.log(err);
       });
     }
-  }).catch(function(err) {
+  }).catch((err) => {
     console.log(err);
   });
 }
 
 function loadSavedMaps() {
   const urlParams = new URLSearchParams(window.location.search);
-  mapStore.length().then(function(numberOfKeys) {
+  mapStore.length().then((numberOfKeys) => {
     /*if (!urlParams.has("map") && numberOfKeys != 1) {
       controls.locateCtrl.start();
     }*/
     if (numberOfKeys > 0) {
-      mapStore.iterate(function(value, key, iterationNumber) {
+      mapStore.iterate((value, key, iterationNumber) => {
         const group = L.layerGroup(null, {key: key});
         const groupID = L.Util.stamp(group);
         layers.groups[groupID] = group;
         addOverlayLayer(group, value.name, groupID, true);
-        group.once("add", function(e) {
+        group.once("add", (e) => {
           const layer = L.tileLayer.mbTiles(value.mbtiles, {
             autoScale: true,
             fitBounds: (urlParams.has("map") && urlParams.get("map") == key) ? true : (numberOfKeys == 1) ? true : false,
@@ -567,16 +567,16 @@ function loadSavedMaps() {
           switchBaseLayer("None");
           document.querySelector(`[data-layer='${groupID}']`).disabled = false;
         }
-      }).then(function() {
+      }).then(() => {
         // console.log("saved maps loaded!");
         loadSavedFeatures();
-      }).catch(function(err) {
+      }).catch((err) => {
         console.log(err);
       });
     } else {
       loadSavedFeatures();
     }
-  }).catch(function(err) {
+  }).catch((err) => {
     console.log(err);
   });
 }
@@ -585,11 +585,11 @@ function loadURLparams() {
   const urlParams = new URLSearchParams(window.location.search);
   if (urlParams.has("map")) {
     const url = urlParams.get("map");
-    mapStore.keys().then(function(keys) {
+    mapStore.keys().then((keys) => {
       if (!keys.includes(url)) {
         fetchFile(url);
       }
-    }).catch(function(err) {
+    }).catch((err) => {
       console.log(err);
     });
     // window.history.replaceState(null, null, window.location.pathname);
@@ -607,15 +607,15 @@ function fetchFile(url) {
           autoScale: true,
           fitBounds: true,
           updateWhenIdle: false
-        }).on("databaseloaded", function(e) {
+        }).on("databaseloaded", (e) => {
           const name = layer.options.name ? layer.options.name : url.split("/").pop().split(".").slice(0, -1).join(".");
           const value = {
             "name": name,
             "mbtiles": data
           };
-          mapStore.setItem(url, value).then(function (value) {
+          mapStore.setItem(url, value).then((value) => {
             addOverlayLayer(layer, name);
-          }).catch(function(err) {
+          }).catch((err) => {
             alert("Error saving data!");
           }); 
         }).addTo(map);
@@ -644,14 +644,14 @@ function updateNetworkStatus() {
 // Drag and drop files
 const dropArea = document.getElementById("map");
 
-["dragenter", "dragover", "dragleave", "drop"].forEach(eventName => {
-  dropArea.addEventListener(eventName, e => {
+["dragenter", "dragover", "dragleave", "drop"].forEach((eventName) => {
+  dropArea.addEventListener(eventName, (e) => {
     e.preventDefault();
     e.stopPropagation();
   }, false);
 });
 
-["dragenter", "dragover"].forEach(eventName => {
+["dragenter", "dragover"].forEach((eventName) => {
   dropArea.addEventListener(eventName, showLoader, false);
 });
 
@@ -659,25 +659,25 @@ const dropArea = document.getElementById("map");
   dropArea.addEventListener(eventName, hideLoader, false);
 });
 
-dropArea.addEventListener("drop", e => {
+dropArea.addEventListener("drop", (e) => {
   const file = e.dataTransfer.files[0];
   handleFile(file);
 }, false);
 
-window.addEventListener("offline", e => {
+window.addEventListener("offline", (e) => {
   updateNetworkStatus();
 });
 
-window.addEventListener("online", e => {
+window.addEventListener("online", (e) => {
   updateNetworkStatus();
 });
 
-document.querySelector(".leaflet-control-layers-base").addEventListener("contextmenu", e => {
+document.querySelector(".leaflet-control-layers-base").addEventListener("contextmenu", (e) => {
   e.preventDefault();
   let fileInput = L.DomUtil.create("input", "hidden");
   fileInput.type = "file";
   fileInput.accept = ".json";
-  fileInput.addEventListener("change", function () {
+  fileInput.addEventListener("change", () => {
     const file = fileInput.files[0];
     loadBasemapConfig(file);
     this.value = "";
@@ -685,7 +685,7 @@ document.querySelector(".leaflet-control-layers-base").addEventListener("context
   fileInput.click();
 });
 
-document.addEventListener("DOMContentLoaded", function(){
+document.addEventListener("DOMContentLoaded", () => {
   showLoader();
   controls.locateCtrl.start();
 });
