@@ -10,7 +10,7 @@ const featureStore = localforage.createInstance({
 
 const map = L.map("map", {
   zoomSnap: L.Browser.mobile ? 0 : 1,
-  tap: false,
+  tap: (L.Browser.safari && !L.Browser.mobile) ? false : true,
   maxZoom: 22,
   zoomControl: false,
   renderer: L.canvas({
