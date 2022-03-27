@@ -208,15 +208,15 @@ function createVectorLayer(name, data, key, save) {
     bubblingMouseEvents: false,
     style: (feature) => {
       return {	
-        color: feature.properties.hasOwnProperty("stroke") ? feature.properties["stroke"] : feature.properties["marker-color"] ? feature.properties["marker-color"] : "#ff0000",
+        color: feature.properties.hasOwnProperty("stroke") ? feature.properties["stroke"] : feature.properties["marker-color"] ? feature.properties["marker-color"] : feature.geometry.type == "Point" ? "#ffffff" : "#ff0000",
         opacity: feature.properties.hasOwnProperty("stroke-opacity") ? feature.properties["stroke-opacity"] : 1.0,
-        weight: feature.properties.hasOwnProperty("stroke-width") ? feature.properties["stroke-width"] : 3,
+        weight: feature.properties.hasOwnProperty("stroke-width") ? feature.properties["stroke-width"] : feature.geometry.type == "Point" ? 1.5 : 3,
         fillColor: feature.properties.hasOwnProperty("fill") ? feature.properties["fill"] : feature.properties["marker-color"] ? feature.properties["marker-color"] : "#ff0000",
         fillOpacity: feature.properties.hasOwnProperty("fill-opacity") ? feature.properties["fill-opacity"] : feature.geometry.type != "Point" ? 0.2 : feature.geometry.type == "Point" ? 1 : "",
       };	
     },
     pointToLayer: (feature, latlng) => {	
-      const size = feature.properties.hasOwnProperty("marker-size") ? feature.properties["marker-size"] : "small";
+      const size = feature.properties.hasOwnProperty("marker-size") ? feature.properties["marker-size"] : "medium";
       const sizes = {
         small: 4,
         medium: 6,
