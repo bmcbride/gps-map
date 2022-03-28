@@ -174,6 +174,7 @@ function loadVector(file, name, format) {
   reader.onload = function(e) {
     if (format == "geojson") {
       geojson = JSON.parse(reader.result);
+      name = geojson.name ? geojson.name : name;
     } else if (format == "kml") {
       const kml = (new DOMParser()).parseFromString(reader.result, "text/xml");
       geojson = toGeoJSON.kml(kml, {styles: true});
