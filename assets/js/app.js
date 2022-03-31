@@ -1,3 +1,5 @@
+const version = "2022.03.30.1";
+
 const mapStore = localforage.createInstance({
   name: "maps",
   storeName: "saved_maps"
@@ -10,7 +12,7 @@ const featureStore = localforage.createInstance({
 
 const map = L.map("map", {
   zoomSnap: L.Browser.mobile ? 0 : 1,
-  tap: (L.Browser.safari && !L.Browser.mobile) ? false : true,
+  // tap: (L.Browser.safari && !L.Browser.mobile) ? false : true,
   maxZoom: 22,
   zoomControl: false,
   renderer: L.canvas({
@@ -353,7 +355,7 @@ function getLayerState() {
     const id = element.getAttribute("data-layer");
     const layer = map._layers[id];
     layers[id] = {
-      disabled: map.hasLayer(layer) ? false : true,
+      disabled: (layer && map.hasLayer(layer)) ? false : true,
       opacity: element.value
     }
   });
@@ -522,7 +524,7 @@ function loadCustomBasemaps(config) {
 }
 
 function showInfo() {
-  alert("Welcome to GPSMap.app, an offline capable map viewer with GPS integration!\n\n- Tap the + button to load a raster MBTiles, GeoJSON, KML, GPX, or CSV file directly from your device or cloud storage.\n- Tap the layers button to view online basemaps and manage offline layers.\n\nDeveloped by Bryan McBride - mcbride.bryan@gmail.com");
+  alert("Welcome to GPSMap.app, an offline capable map viewer with GPS integration!\n\n- Tap the + button to load a raster MBTiles, GeoJSON, KML, GPX, or CSV file directly from your device or cloud storage.\n- Tap the layers button to view online basemaps and manage offline layers.\n\nDeveloped by Bryan McBride - mcbride.bryan@gmail.com\n" + version);
 }
 
 function loadSavedFeatures() {
