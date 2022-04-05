@@ -1,4 +1,4 @@
-const version = "2022.04.05.1";
+const version = "2022.04.05.2";
 
 const mapStore = localforage.createInstance({
   name: "maps",
@@ -241,6 +241,7 @@ function createVectorLayer(name, data, key, save) {
       table += "</table></div>";
       layer.bindPopup(table, {
         // closeButton: false,
+        autoPanPadding: [15, 15],
         maxHeight: 300,
         maxWidth: 250
       });

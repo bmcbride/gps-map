@@ -8,7 +8,7 @@ workbox.setConfig({
 workbox.precaching.precacheAndRoute([
   {url: 'index.html', revision: '04.05.22.1'},
   {url: 'manifest.json', revision: '09.09.20.1'},
-  {url: 'assets/js/app.js', revision: '04.05.22.1'},
+  {url: 'assets/js/app.js', revision: '04.05.22.2'},
   {url: 'assets/css/app.css', revision: '01.15.22.1'},
   {url: 'assets/img/apple-touch-icon.png', revision: '09.09.20.1'},
   {url: 'assets/img/favicon-32x32.png', revision: '09.09.20.1'},
@@ -27,7 +27,7 @@ workbox.precaching.precacheAndRoute([
   {url: 'assets/vendor/leaflet-1.8.0-beta.3/leaflet.css', revision: '04.05.22.1'},
   {url: 'assets/vendor/leaflet-1.8.0-beta.3/leaflet.js', revision: '04.05.22.1'},
   {url: 'assets/vendor/leaflet-locatecontrol-0.76.0/L.Control.Locate.min.css', revision: '12.30.21.1'},
-  {url: 'assets/vendor/leaflet-locatecontrol-0.76.0/L.Control.Locate.min.js', revision: '12.30.21.1'},
+  {url: 'assets/vendor/leaflet-locatecontrol-0.76.0/L.Control.Locate.min.js', revision: '04.05.22.1'},
   {url: 'assets/vendor/leaflet-mbtiles/Leaflet.TileLayer.MBTiles.js', revision: '09.09.20.1'},
   {url: 'assets/vendor/csv2geojson-5.1.1/csv2geojson.min.js', revision: '03.05.21.1'},
   {url: 'assets/vendor/togeojson-0.16.0/togeojson.min.js', revision: '03.05.21.1'}
