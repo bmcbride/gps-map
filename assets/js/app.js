@@ -1,4 +1,4 @@
-const version = "2022.03.30.1";
+const version = "2022.04.05.1";
 
 const mapStore = localforage.createInstance({
   name: "maps",
@@ -331,7 +331,7 @@ function addOverlayLayer(layer, name, group, saved) {
     <span class="layer-buttons">
       <input type="range" value="1" step="0.1" min="0" max="1" data-layer="${L.Util.stamp(layer)}" style="width: 100%;" oninput="changeOpacity(${L.Util.stamp(layer)});" ${saved ? "disabled" : ""}>
       <a class="layer-btn" href="#" title="Zoom to layer" onclick="zoomToLayer(${L.Util.stamp(layer)}); return false;"><i class="icon-zoom_out_map" style="color: darkslategray; font-size: 22px;"></i></a>
-      <a class="layer-btn" href="#" title="Remove layer" onclick="removeLayer(${L.Util.stamp(layer)}, '${name}', '${group ? group : ''}'); return false;"><i class="icon-delete" style="color: red; font-size: 22px;"></i></a>
+      <a class="layer-btn" href="#" title="Remove layer" onclick="removeLayer(${L.Util.stamp(layer)}, '${name}', '${group ? group : ''}'); L.DomEvent.disableClickPropagation(this); return false;"><i class="icon-delete" style="color: red; font-size: 22px;"></i></a>
     </span>
     <div style="clear: both;"></div>
   `);
@@ -408,7 +408,7 @@ function removeLayer(id, name, group) {
         featureStore.removeItem(layer.options.key).then(function () {
           controls.layerCtrl.removeLayer(layer);
           updateLayerState(layerState);
-        }); 
+        });
       }
     }
     if (group) {
@@ -418,10 +418,10 @@ function removeLayer(id, name, group) {
         controls.layerCtrl.removeLayer(groupLayer);
         updateLayerState(layerState);
       });
-    } else {
+    }/* else {
       controls.layerCtrl.removeLayer(layer);
       updateLayerState(layerState);
-    }
+    }*/
   }
 }
 

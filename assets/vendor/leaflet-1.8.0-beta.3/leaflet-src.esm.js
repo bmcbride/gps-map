@@ -1,9 +1,9 @@
 /* @preserve
- * Leaflet 1.8.0-beta.1, a JS library for interactive maps. https://leafletjs.com
+ * Leaflet 1.8.0-beta.3, a JS library for interactive maps. https://leafletjs.com
  * (c) 2010-2022 Vladimir Agafonkin, (c) 2010-2011 CloudMade
  */
 
-var version = "1.8.0-beta.1";
+var version = "1.8.0-beta.3";
 
 /*
  * @namespace Util
@@ -1977,6 +1977,12 @@ var canvas$1 = (function () {
 // `true` when the browser supports [SVG](https://developer.mozilla.org/docs/Web/SVG).
 var svg$1 = !!(document.createElementNS && svgCreate('svg').createSVGRect);
 
+var inlineSvg = !!svg$1 && (function () {
+	var div = document.createElement('div');
+	div.innerHTML = '<svg/>';
+	return (div.firstChild && div.firstChild.namespaceURI) === 'http://www.w3.org/2000/svg';
+})();
+
 // @property vml: Boolean
 // `true` if the browser supports [VML](https://en.wikipedia.org/wiki/Vector_Markup_Language).
 var vml = !svg$1 && (function () {
@@ -1993,7 +1999,6 @@ var vml = !svg$1 && (function () {
 		return false;
 	}
 }());
-
 
 function userAgentContains(str) {
 	return navigator.userAgent.toLowerCase().indexOf(str) >= 0;
@@ -2033,6 +2038,7 @@ var Browser = {
 	canvas: canvas$1,
 	svg: svg$1,
 	vml: vml,
+	inlineSvg: inlineSvg
 };
 
 /*
@@ -4687,10 +4693,7 @@ var Map = Evented.extend({
 
 		this.fire('move');
 
-		// This anim frame should prevent an obscure iOS webkit tile loading race condition.
-		requestAnimFrame(function () {
-			this._moveEnd(true);
-		}, this);
+		this._moveEnd(true);
 	}
 });
 
@@ -5563,6 +5566,9 @@ var scale = function (options) {
 	return new Scale(options);
 };
 
+var ukrainianFlag = '<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="12" height="8"><path fill="#4C7BE1" d="M0 0h12v4H0z"/><path fill="#FFD500" d="M0 4h12v3H0z"/><path fill="#E0BC00" d="M0 7h12v1H0z"/></svg>';
+
+
 /*
  * @class Control.Attribution
  * @aka L.Control.Attribution
@@ -5579,8 +5585,7 @@ var Attribution = Control.extend({
 
 		// @option prefix: String|false = 'Leaflet'
 		// The HTML text shown before the attributions. Pass `false` to disable.
-		prefix: '<a href="https://leafletjs.com" title="A JavaScript library for interactive maps">Leaflet</a>'
-
+		prefix: '<a href="https://leafletjs.com" title="A JavaScript library for interactive maps">' + (Browser.inlineSvg ? ukrainianFlag + ' ' : '') + 'Leaflet</a>'
 	},
 
 	initialize: function (options) {
@@ -5827,7 +5832,7 @@ var Draggable = Evented.extend({
 		// If we're currently dragging this draggable,
 		// disabling it counts as first ending the drag.
 		if (Draggable._dragging === this) {
-			this.finishDrag();
+			this.finishDrag(true);
 		}
 
 		off(this._dragStartTarget, START, this._onDown, this);
@@ -5844,6 +5849,14 @@ var Draggable = Evented.extend({
 		this._moved = false;
 
 		if (hasClass(this._element, 'leaflet-zoom-anim')) { return; }
+
+		if (e.touches && e.touches.length !== 1) {
+			// Finish dragging to avoid conflict with touchZoom
+			if (Draggable._dragging === this) {
+				this.finishDrag();
+			}
+			return;
+		}
 
 		if (Draggable._dragging || e.shiftKey || ((e.which !== 1) && (e.button !== 1) && !e.touches)) { return; }
 		Draggable._dragging = this;  // Prevent dragging multiple objects at once.
@@ -5945,7 +5958,7 @@ var Draggable = Evented.extend({
 		this.finishDrag();
 	},
 
-	finishDrag: function () {
+	finishDrag: function (noInertia) {
 		removeClass(document.body, 'leaflet-dragging');
 
 		if (this._lastTarget) {
@@ -5964,6 +5977,7 @@ var Draggable = Evented.extend({
 			// @event dragend: DragEndEvent
 			// Fired when the drag ends.
 			this.fire('dragend', {
+				noInertia: noInertia,
 				distance: this._newPos.distanceTo(this._startPos)
 			});
 		}
@@ -7742,7 +7756,7 @@ var Marker = Layer.extend({
 		if (!map) { return; }
 
 		var iconOpts = this.options.icon.options;
-		var size = toPoint(iconOpts.iconSize);
+		var size = iconOpts.iconSize ? toPoint(iconOpts.iconSize) : toPoint(0, 0);
 		var anchor = iconOpts.iconAnchor ? toPoint(iconOpts.iconAnchor) : toPoint(0, 0);
 
 		map.panInside(this._latlng, {
@@ -12116,13 +12130,11 @@ var Renderer = Layer.extend({
 
 	_updateTransform: function (center, zoom) {
 		var scale = this._map.getZoomScale(zoom, this._zoom),
-		    position = getPosition(this._container),
 		    viewHalf = this._map.getSize().multiplyBy(0.5 + this.options.padding),
 		    currentCenterPoint = this._map.project(this._center, zoom),
-		    destCenterPoint = this._map.project(center, zoom),
-		    centerOffset = destCenterPoint.subtract(currentCenterPoint),
 
-		    topLeftOffset = viewHalf.multiplyBy(-scale).add(position).add(viewHalf).subtract(centerOffset);
+		    topLeftOffset = viewHalf.multiplyBy(-scale).add(currentCenterPoint)
+				  .subtract(this._map._getNewPixelOrigin(center, zoom));
 
 		if (Browser.any3d) {
 			setTransform(this._container, topLeftOffset, scale);
@@ -12833,12 +12845,6 @@ var create = Browser.vml ? vmlCreate : svgCreate;
 
 var SVG = Renderer.extend({
 
-	getEvents: function () {
-		var events = Renderer.prototype.getEvents.call(this);
-		events.zoomstart = this._onZoomStart;
-		return events;
-	},
-
 	_initContainer: function () {
 		this._container = create('svg');
 
@@ -12855,13 +12861,6 @@ var SVG = Renderer.extend({
 		delete this._container;
 		delete this._rootGroup;
 		delete this._svgSize;
-	},
-
-	_onZoomStart: function () {
-		// Drag-then-pinch interactions might mess up the center and zoom.
-		// In this case, the easiest way to prevent this is re-do the renderer
-		//   bounds and padding when the zooming starts.
-		this._update();
 	},
 
 	_update: function () {
@@ -13319,7 +13318,7 @@ Map.addInitHook('addHandler', 'doubleClickZoom', DoubleClickZoom);
 // @section Interaction Options
 Map.mergeOptions({
 	// @option dragging: Boolean = true
-	// Whether the map be draggable with mouse/touch or not.
+	// Whether the map is draggable with mouse/touch or not.
 	dragging: true,
 
 	// @section Panning Inertia Options
@@ -13492,7 +13491,7 @@ var Drag = Handler.extend({
 		var map = this._map,
 		    options = map.options,
 
-		    noInertia = !options.inertia || this._times.length < 2;
+		    noInertia = !options.inertia || e.noInertia || this._times.length < 2;
 
 		map.fire('dragend', e);
 
