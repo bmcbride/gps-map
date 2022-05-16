@@ -1,4 +1,4 @@
-const version = "2022.04.05.2";
+const version = "2022.05.16.1";
 
 const mapStore = localforage.createInstance({
   name: "maps",
