@@ -1,4 +1,4 @@
-const version = "2022.05.16.1";
+const version = "2022.10.27.1";
 
 const mapStore = localforage.createInstance({
   name: "maps",
@@ -696,7 +696,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 initSqlJs({
   locateFile: function() {
-    return "assets/vendor/sqljs-1.6.2/sql-wasm.wasm";
+    return "assets/vendor/sqljs-1.8.0/sql-wasm.wasm";
   }
 }).then(function(SQL){
   loadURLparams();
