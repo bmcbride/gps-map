@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#000000">
+    <meta name="description" content="An offline capable map viewer with GPS integration">
+    <meta name="author" content="Bryan McBride">
+    <title>GPS Map</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="assets/img/180.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/img/32.png">
+    <link rel="stylesheet" href="assets/vendor/leaflet-1.9.4/leaflet.css">
+    <link rel="stylesheet" href="assets/vendor/leaflet-locatecontrol-0.79.0/L.Control.Locate.min.css">
+    <link rel="stylesheet" href="assets/vendor/icomoon-v1.0/style.css">
+    <link rel="stylesheet" href="assets/css/app.css">
+  </head>
+  <body>
+    <main id="map">
+      <div class="progress" id="progress-bar">
+        <div class="indeterminate"></div>
+      </div>
+    </main>
+    <script src="assets/vendor/localForage-1.10.0/localforage.min.js"></script>
+    <script src="assets/vendor/leaflet-1.9.4/leaflet.js"></script>
+    <script src="assets/vendor/leaflet-locatecontrol-0.79.0/L.Control.Locate.min.js"></script>
+    <script src="assets/vendor/pmtiles-2.11.0/index.js"></script>
+    <script src="assets/vendor/sweetalert2-11.10.0/sweetalert2.all.min.js"></script>
+    <script src="assets/js/app.js"></script>
+    <script>
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.register("service-worker.js");
+      }
+    </script>
+    <noscript>This website requires JavaScript!</noscript>
+  </body>
+</html>

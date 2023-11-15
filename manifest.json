@@ -1,0 +1,21 @@
+{
+  "name": "GPS Map",
+  "short_name": "GPS Map",
+  "description": "An offline capable map viewer with GPS integration",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color":  "white",
+  "theme_color": "black",
+  "icons": [
+    {
+      "src": "assets/img/maskable-icon.png",
+      "type": "image/png",
+      "sizes": "1024x1024",
+      "purpose": "maskable"
+    }, {
+      "src": "assets/img/1024.png",
+      "type": "image/png",
+      "sizes": "1024x1024"
+    }
+  ]
+}
