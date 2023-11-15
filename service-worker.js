@@ -11,6 +11,7 @@ workbox.precaching.precacheAndRoute([
   {url: 'assets/js/app.js', revision: '11.15.23.1'},
   {url: 'assets/css/app.css', revision: '11.15.23.1'},
   {url: 'assets/img/32.png', revision: '11.15.23.1'},
+  {url: 'assets/img/87.png', revision: '11.15.23.1'},
   {url: 'assets/img/180.png', revision: '11.15.23.1'},
   {url: 'assets/img/1024.png', revision: '11.15.23.1'},
   {url: 'assets/img/maskable-icon.png', revision: '11.15.23.1'},
