@@ -1,5 +1,5 @@
 const app = {
-  version: "2023.11.15.1"
+  version: "2023.11.15.2"
 }
 
 const mapStore = localforage.createInstance({
@@ -396,9 +396,9 @@ function handleFile(file) {
   showLoader();
   const name = file.name.split(".").slice(0, -1).join(".");
 
-  if (file.name.endsWith(".pmtiles")) {
+  if (file.name.includes(".pmtiles")) {
     saveMap(file, name);
-  } else if (file.name.endsWith(".geojson")) {
+  } else if (file.name.includes(".geojson")) {
     addVectorLayer(file, name);
   } else {
     Swal.fire({
