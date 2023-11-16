@@ -1,5 +1,5 @@
 const app = {
-  version: "2023.11.15.2"
+  version: "2023.11.16.1"
 }
 
 const mapStore = localforage.createInstance({
@@ -221,6 +221,7 @@ function handleURLparams(keys) {
   let urlParams = new URLSearchParams(window.location.search);
   if (urlParams.has("map")) {
     let key = urlParams.get("map");
+    key = key.includes("www.dropbox.com") ? key.replace("www.dropbox.com", "dl.dropboxusercontent.com") : key;
     if (keys.includes(key)) {
       let layer = layers[key];
       map.addLayer(layer);
