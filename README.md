@@ -1,7 +1,7 @@
 # gpsmap.app
-A Progressive Web App (PWA) that leverages modern browser technology for viewing custom maps, even when offline.
+[https://gpsmap.app](https://gpsmap.app)
 
-![Screenshot](https://gpsmap.app/app-images/montage.jpg)
+A Progressive Web App (PWA) that leverages modern browser technology for viewing custom maps, even when offline.
 
 ## Features
 - **Simple** - 100% client-side, distributed via the web, hosted free on GitHub Pages
