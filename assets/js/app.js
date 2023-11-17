@@ -1,5 +1,5 @@
 const app = {
-  version: "2023.11.16.1"
+  version: "2023.11.17.1"
 }
 
 const mapStore = localforage.createInstance({
@@ -22,6 +22,11 @@ map.on("load", (e) => {
 
 map.on("baselayerchange", (e) => {
   localStorage.setItem("map", e.layer.options.key);
+  map.eachLayer(layer => {
+    if (layer instanceof L.GridLayer && layer != e.layer) {
+      map.removeLayer(layer);
+    }
+  });
   if (e.layer.options.bounds) {
     let bounds = e.layer.options.bounds;
     map.setMaxBounds(null);
