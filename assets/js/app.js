@@ -1,5 +1,5 @@
 const app = {
-  version: "2024.01.10.1"
+  version: "2024.05.08.1"
 }
 
 const mapStore = localforage.createInstance({
