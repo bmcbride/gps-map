@@ -29,7 +29,7 @@ workbox.precaching.precacheAndRoute([
   {url: 'assets/vendor/leaflet-locatecontrol-0.81.0/L.Control.Locate.min.css', revision: '05.08.24.1'},
   {url: 'assets/vendor/leaflet-locatecontrol-0.81.0/L.Control.Locate.min.js', revision: '05.08.24.1'},
   {url: 'assets/vendor/pmtiles-3.0.5/pmtiles.js', revision: '05.08.24.1'},
-  {url: 'assets/vendor/sweetalert2-11.10.2/sweetalert2.all.min.js', revision: '01.10.24.1'}
+  {url: 'assets/vendor/sweetalert2-11.10.8/sweetalert2.all.min.js', revision: '05.08.24.1'}
 ], {
   ignoreURLParametersMatching: [/.*/]
 });
