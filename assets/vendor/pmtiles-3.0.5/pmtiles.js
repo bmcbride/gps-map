@@ -4,6 +4,7 @@ var pmtiles = (() => {
   var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
   var __getOwnPropNames = Object.getOwnPropertyNames;
   var __hasOwnProp = Object.prototype.hasOwnProperty;
+  var __pow = Math.pow;
   var __export = (target, all) => {
     for (var name in all)
       __defProp(target, name, { get: all[name], enumerable: true });
@@ -44,7 +45,7 @@ var pmtiles = (() => {
     Compression: () => Compression,
     EtagMismatch: () => EtagMismatch,
     FetchSource: () => FetchSource,
-    FileAPISource: () => FileAPISource,
+    FileSource: () => FileSource,
     PMTiles: () => PMTiles,
     Protocol: () => Protocol,
     ResolvedValueCache: () => ResolvedValueCache,
@@ -63,8 +64,77 @@ var pmtiles = (() => {
   var u8 = Uint8Array;
   var u16 = Uint16Array;
   var i32 = Int32Array;
-  var fleb = new u8([0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 0, 0, 0, 0]);
-  var fdeb = new u8([0, 0, 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13, 0, 0]);
+  var fleb = new u8([
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1,
+    1,
+    1,
+    2,
+    2,
+    2,
+    2,
+    3,
+    3,
+    3,
+    3,
+    4,
+    4,
+    4,
+    4,
+    5,
+    5,
+    5,
+    5,
+    0,
+    /* unused */
+    0,
+    0,
+    /* impossible */
+    0
+  ]);
+  var fdeb = new u8([
+    0,
+    0,
+    0,
+    0,
+    1,
+    1,
+    2,
+    2,
+    3,
+    3,
+    4,
+    4,
+    5,
+    5,
+    6,
+    6,
+    7,
+    7,
+    8,
+    8,
+    9,
+    9,
+    10,
+    10,
+    11,
+    11,
+    12,
+    12,
+    13,
+    13,
+    /* unused */
+    0,
+    0
+  ]);
   var clim = new u8([16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15]);
   var freb = function(eb, start) {
     var b = new u16(31);
@@ -193,6 +263,7 @@ var pmtiles = (() => {
     "filename too long",
     "stream finishing",
     "invalid zip data"
+    // determined by unknown compression method
   ];
   var err = function(ind, msg, nt) {
     var e = new Error(msg || ec[ind]);
@@ -396,10 +467,10 @@ var pmtiles = (() => {
 
   // v2.ts
   var shift = (n, shift2) => {
-    return n * Math.pow(2, shift2);
+    return n * __pow(2, shift2);
   };
   var unshift = (n, shift2) => {
-    return Math.floor(n / Math.pow(2, shift2));
+    return Math.floor(n / __pow(2, shift2));
   };
   var getUint24 = (view, pos) => {
     return shift(view.getUint16(pos + 1, true), 8) + view.getUint8(pos);
@@ -408,40 +479,40 @@ var pmtiles = (() => {
     return shift(view.getUint32(pos + 2, true), 16) + view.getUint16(pos, true);
   };
   var compare = (tz, tx, ty, view, i) => {
-    if (tz != view.getUint8(i))
+    if (tz !== view.getUint8(i))
       return tz - view.getUint8(i);
     const x = getUint24(view, i + 1);
-    if (tx != x)
+    if (tx !== x)
       return tx - x;
     const y = getUint24(view, i + 4);
-    if (ty != y)
+    if (ty !== y)
       return ty - y;
     return 0;
   };
   var queryLeafdir = (view, z, x, y) => {
-    const offset_len = queryView(view, z | 128, x, y);
-    if (offset_len) {
+    const offsetLen = queryView(view, z | 128, x, y);
+    if (offsetLen) {
       return {
         z,
         x,
         y,
-        offset: offset_len[0],
-        length: offset_len[1],
-        is_dir: true
+        offset: offsetLen[0],
+        length: offsetLen[1],
+        isDir: true
       };
     }
     return null;
   };
   var queryTile = (view, z, x, y) => {
-    const offset_len = queryView(view, z, x, y);
-    if (offset_len) {
+    const offsetLen = queryView(view, z, x, y);
+    if (offsetLen) {
       return {
         z,
         x,
         y,
-        offset: offset_len[0],
-        length: offset_len[1],
-        is_dir: false
+        offset: offsetLen[0],
+        length: offsetLen[1],
+        isDir: false
       };
     }
     return null;
@@ -463,10 +534,10 @@ var pmtiles = (() => {
     return null;
   };
   var entrySort = (a, b) => {
-    if (a.is_dir && !b.is_dir) {
+    if (a.isDir && !b.isDir) {
       return 1;
     }
-    if (!a.is_dir && b.is_dir) {
+    if (!a.isDir && b.isDir) {
       return -1;
     }
     if (a.z !== b.z) {
@@ -478,15 +549,15 @@ var pmtiles = (() => {
     return a.y - b.y;
   };
   var parseEntry = (dataview, i) => {
-    const z_raw = dataview.getUint8(i * 17);
-    const z = z_raw & 127;
+    const zRaw = dataview.getUint8(i * 17);
+    const z = zRaw & 127;
     return {
       z,
       x: getUint24(dataview, i * 17 + 1),
       y: getUint24(dataview, i * 17 + 4),
       offset: getUint48(dataview, i * 17 + 7),
       length: dataview.getUint32(i * 17 + 13, true),
-      is_dir: z_raw >> 7 === 1
+      isDir: zRaw >> 7 === 1
     };
   };
   var sortDir = (a) => {
@@ -504,7 +575,7 @@ var pmtiles = (() => {
     for (let i = 0; i < entries.length; i++) {
       const entry = entries[i];
       let z = entry.z;
-      if (entry.is_dir)
+      if (entry.isDir)
         z = z | 128;
       arr[i * 17] = z;
       arr[i * 17 + 1] = entry.x & 255;
@@ -531,12 +602,12 @@ var pmtiles = (() => {
       return null;
     const numEntries = view.byteLength / 17;
     const entry = parseEntry(view, numEntries - 1);
-    if (entry.is_dir) {
-      const leaf_level = entry.z;
-      const level_diff = tile.z - leaf_level;
-      const leaf_x = Math.trunc(tile.x / (1 << level_diff));
-      const leaf_y = Math.trunc(tile.y / (1 << level_diff));
-      return { z: leaf_level, x: leaf_x, y: leaf_y };
+    if (entry.isDir) {
+      const leafLevel = entry.z;
+      const levelDiff = tile.z - leafLevel;
+      const leafX = Math.trunc(tile.x / (1 << levelDiff));
+      const leafY = Math.trunc(tile.y / (1 << levelDiff));
+      return { z: leafLevel, x: leafX, y: leafY };
     }
     return null;
   };
@@ -544,50 +615,50 @@ var pmtiles = (() => {
     return __async(this, null, function* () {
       const resp = yield source.getBytes(0, 512e3);
       const dataview = new DataView(resp.data);
-      const json_size = dataview.getUint32(4, true);
-      const root_entries = dataview.getUint16(8, true);
+      const jsonSize = dataview.getUint32(4, true);
+      const rootEntries = dataview.getUint16(8, true);
       const dec = new TextDecoder("utf-8");
-      const json_metadata = JSON.parse(
-        dec.decode(new DataView(resp.data, 10, json_size))
+      const jsonMetadata = JSON.parse(
+        dec.decode(new DataView(resp.data, 10, jsonSize))
       );
-      let tile_compression = 0 /* Unknown */;
-      if (json_metadata.compression === "gzip") {
-        tile_compression = 2 /* Gzip */;
+      let tileCompression = 0 /* Unknown */;
+      if (jsonMetadata.compression === "gzip") {
+        tileCompression = 2 /* Gzip */;
       }
       let minzoom = 0;
-      if ("minzoom" in json_metadata) {
-        minzoom = +json_metadata.minzoom;
+      if ("minzoom" in jsonMetadata) {
+        minzoom = +jsonMetadata.minzoom;
       }
       let maxzoom = 0;
-      if ("maxzoom" in json_metadata) {
-        maxzoom = +json_metadata.maxzoom;
+      if ("maxzoom" in jsonMetadata) {
+        maxzoom = +jsonMetadata.maxzoom;
       }
-      let center_lon = 0;
-      let center_lat = 0;
-      let center_zoom = 0;
-      let min_lon = -180;
-      let min_lat = -85;
-      let max_lon = 180;
-      let max_lat = 85;
-      if (json_metadata.bounds) {
-        const split = json_metadata.bounds.split(",");
-        min_lon = +split[0];
-        min_lat = +split[1];
-        max_lon = +split[2];
-        max_lat = +split[3];
+      let centerLon = 0;
+      let centerLat = 0;
+      let centerZoom = 0;
+      let minLon = -180;
+      let minLat = -85;
+      let maxLon = 180;
+      let maxLat = 85;
+      if (jsonMetadata.bounds) {
+        const split = jsonMetadata.bounds.split(",");
+        minLon = +split[0];
+        minLat = +split[1];
+        maxLon = +split[2];
+        maxLat = +split[3];
       }
-      if (json_metadata.center) {
-        const split = json_metadata.center.split(",");
-        center_lon = +split[0];
-        center_lat = +split[1];
-        center_zoom = +split[2];
+      if (jsonMetadata.center) {
+        const split = jsonMetadata.center.split(",");
+        centerLon = +split[0];
+        centerLat = +split[1];
+        centerZoom = +split[2];
       }
       const header = {
         specVersion: dataview.getUint16(2, true),
-        rootDirectoryOffset: 10 + json_size,
-        rootDirectoryLength: root_entries * 17,
+        rootDirectoryOffset: 10 + jsonSize,
+        rootDirectoryLength: rootEntries * 17,
         jsonMetadataOffset: 10,
-        jsonMetadataLength: json_size,
+        jsonMetadataLength: jsonSize,
         leafDirectoryOffset: 0,
         leafDirectoryLength: void 0,
         tileDataOffset: 0,
@@ -597,17 +668,17 @@ var pmtiles = (() => {
         numTileContents: 0,
         clustered: false,
         internalCompression: 1 /* None */,
-        tileCompression: tile_compression,
+        tileCompression,
         tileType: 1 /* Mvt */,
         minZoom: minzoom,
         maxZoom: maxzoom,
-        minLon: min_lon,
-        minLat: min_lat,
-        maxLon: max_lon,
-        maxLat: max_lat,
-        centerZoom: center_zoom,
-        centerLon: center_lon,
-        centerLat: center_lat,
+        minLon,
+        minLat,
+        maxLon,
+        maxLat,
+        centerZoom,
+        centerLon,
+        centerLat,
         etag: resp.etag
       };
       return header;
@@ -615,59 +686,59 @@ var pmtiles = (() => {
   }
   function getZxy(header, source, cache, z, x, y, signal) {
     return __async(this, null, function* () {
-      let root_dir = yield cache.getArrayBuffer(
+      let rootDir = yield cache.getArrayBuffer(
         source,
         header.rootDirectoryOffset,
         header.rootDirectoryLength,
         header
       );
       if (header.specVersion === 1) {
-        root_dir = sortDir(root_dir);
+        rootDir = sortDir(rootDir);
       }
-      const entry = queryTile(new DataView(root_dir), z, x, y);
+      const entry = queryTile(new DataView(rootDir), z, x, y);
       if (entry) {
         const resp = yield source.getBytes(entry.offset, entry.length, signal);
-        let tile_data = resp.data;
-        const view = new DataView(tile_data);
-        if (view.getUint8(0) == 31 && view.getUint8(1) == 139) {
-          tile_data = decompressSync(new Uint8Array(tile_data));
+        let tileData = resp.data;
+        const view = new DataView(tileData);
+        if (view.getUint8(0) === 31 && view.getUint8(1) === 139) {
+          tileData = decompressSync(new Uint8Array(tileData));
         }
         return {
-          data: tile_data
+          data: tileData
         };
       }
-      const leafcoords = deriveLeaf(new DataView(root_dir), { z, x, y });
+      const leafcoords = deriveLeaf(new DataView(rootDir), { z, x, y });
       if (leafcoords) {
-        const leafdir_entry = queryLeafdir(
-          new DataView(root_dir),
+        const leafdirEntry = queryLeafdir(
+          new DataView(rootDir),
           leafcoords.z,
           leafcoords.x,
           leafcoords.y
         );
-        if (leafdir_entry) {
-          let leaf_dir = yield cache.getArrayBuffer(
+        if (leafdirEntry) {
+          let leafDir = yield cache.getArrayBuffer(
             source,
-            leafdir_entry.offset,
-            leafdir_entry.length,
+            leafdirEntry.offset,
+            leafdirEntry.length,
             header
           );
           if (header.specVersion === 1) {
-            leaf_dir = sortDir(leaf_dir);
+            leafDir = sortDir(leafDir);
           }
-          const tile_entry = queryTile(new DataView(leaf_dir), z, x, y);
-          if (tile_entry) {
+          const tileEntry = queryTile(new DataView(leafDir), z, x, y);
+          if (tileEntry) {
             const resp = yield source.getBytes(
-              tile_entry.offset,
-              tile_entry.length,
+              tileEntry.offset,
+              tileEntry.length,
               signal
             );
-            let tile_data = resp.data;
-            const view = new DataView(tile_data);
-            if (view.getUint8(0) == 31 && view.getUint8(1) == 139) {
-              tile_data = decompressSync(new Uint8Array(tile_data));
+            let tileData = resp.data;
+            const view = new DataView(tileData);
+            if (view.getUint8(0) === 31 && view.getUint8(1) === 139) {
+              tileData = decompressSync(new Uint8Array(tileData));
             }
             return {
-              data: tile_data
+              data: tileData
             };
           }
         }
@@ -685,7 +756,7 @@ var pmtiles = (() => {
     let loaded = false;
     let mimeType = "";
     const cls = L.GridLayer.extend({
-      createTile: function(coord, done) {
+      createTile: (coord, done) => {
         const el = document.createElement("img");
         const controller = new AbortController();
         const signal = controller.signal;
@@ -694,17 +765,17 @@ var pmtiles = (() => {
         };
         if (!loaded) {
           source.getHeader().then((header) => {
-            if (header.tileType == 1 /* Mvt */) {
+            if (header.tileType === 1 /* Mvt */) {
               console.error(
                 "Error: archive contains MVT vector tiles, but leafletRasterLayer is for displaying raster tiles. See https://github.com/protomaps/PMTiles/tree/main/js for details."
               );
-            } else if (header.tileType == 2) {
+            } else if (header.tileType === 2) {
               mimeType = "image/png";
-            } else if (header.tileType == 3) {
+            } else if (header.tileType === 3) {
               mimeType = "image/jpeg";
-            } else if (header.tileType == 4) {
+            } else if (header.tileType === 4) {
               mimeType = "image/webp";
-            } else if (header.tileType == 5) {
+            } else if (header.tileType === 5) {
               mimeType = "image/avif";
             }
           });
@@ -715,8 +786,8 @@ var pmtiles = (() => {
             const blob = new Blob([arr.data], { type: mimeType });
             const imageUrl = window.URL.createObjectURL(blob);
             el.src = imageUrl;
-            el.cancel = null;
-            done(null, el);
+            el.cancel = void 0;
+            done(void 0, el);
           }
         }).catch((e) => {
           if (e.name !== "AbortError") {
@@ -745,82 +816,77 @@ var pmtiles = (() => {
     });
     return new cls(options);
   };
+  var v3compat = (v4) => (requestParameters, arg2) => {
+    if (arg2 instanceof AbortController) {
+      return v4(requestParameters, arg2);
+    }
+    const abortController = new AbortController();
+    v4(requestParameters, abortController).then(
+      (result) => {
+        return arg2(
+          void 0,
+          result.data,
+          result.cacheControl || "",
+          result.expires || ""
+        );
+      },
+      (err2) => {
+        return arg2(err2);
+      }
+    ).catch((e) => {
+      return arg2(e);
+    });
+    return { cancel: () => abortController.abort() };
+  };
   var Protocol = class {
     constructor() {
-      this.tile = (params, callback) => {
-        if (params.type == "json") {
-          const pmtiles_url = params.url.substr(10);
-          let instance = this.tiles.get(pmtiles_url);
-          if (!instance) {
-            instance = new PMTiles(pmtiles_url);
-            this.tiles.set(pmtiles_url, instance);
+      this.tilev4 = (params, abortController) => __async(this, null, function* () {
+        if (params.type === "json") {
+          const pmtilesUrl2 = params.url.substr(10);
+          let instance2 = this.tiles.get(pmtilesUrl2);
+          if (!instance2) {
+            instance2 = new PMTiles(pmtilesUrl2);
+            this.tiles.set(pmtilesUrl2, instance2);
           }
-          instance.getHeader().then((h) => {
-            const tilejson = {
-              tiles: [params.url + "/{z}/{x}/{y}"],
+          const h = yield instance2.getHeader();
+          return {
+            data: {
+              tiles: [`${params.url}/{z}/{x}/{y}`],
               minzoom: h.minZoom,
               maxzoom: h.maxZoom,
               bounds: [h.minLon, h.minLat, h.maxLon, h.maxLat]
-            };
-            callback(null, tilejson, null, null);
-          }).catch((e) => {
-            callback(e, null, null, null);
-          });
-          return {
-            cancel: () => {
             }
           };
-        } else {
-          const re = new RegExp(/pmtiles:\/\/(.+)\/(\d+)\/(\d+)\/(\d+)/);
-          const result = params.url.match(re);
-          if (!result) {
-            throw new Error("Invalid PMTiles protocol URL");
-            return {
-              cancel: () => {
-              }
-            };
-          }
-          const pmtiles_url = result[1];
-          let instance = this.tiles.get(pmtiles_url);
-          if (!instance) {
-            instance = new PMTiles(pmtiles_url);
-            this.tiles.set(pmtiles_url, instance);
-          }
-          const z = result[2];
-          const x = result[3];
-          const y = result[4];
-          const controller = new AbortController();
-          const signal = controller.signal;
-          let cancel = () => {
-            controller.abort();
-          };
-          instance.getHeader().then((header) => {
-            instance.getZxy(+z, +x, +y, signal).then((resp) => {
-              if (resp) {
-                callback(
-                  null,
-                  new Uint8Array(resp.data),
-                  resp.cacheControl,
-                  resp.expires
-                );
-              } else {
-                if (header.tileType == 1 /* Mvt */) {
-                  callback(null, new Uint8Array(), null, null);
-                } else {
-                  callback(null, null, null, null);
-                }
-              }
-            }).catch((e) => {
-              if (e.name !== "AbortError") {
-                callback(e, null, null, null);
-              }
-            });
-          });
+        }
+        const re = new RegExp(/pmtiles:\/\/(.+)\/(\d+)\/(\d+)\/(\d+)/);
+        const result = params.url.match(re);
+        if (!result) {
+          throw new Error("Invalid PMTiles protocol URL");
+        }
+        const pmtilesUrl = result[1];
+        let instance = this.tiles.get(pmtilesUrl);
+        if (!instance) {
+          instance = new PMTiles(pmtilesUrl);
+          this.tiles.set(pmtilesUrl, instance);
+        }
+        const z = result[2];
+        const x = result[3];
+        const y = result[4];
+        const header = yield instance.getHeader();
+        const resp = yield instance == null ? void 0 : instance.getZxy(+z, +x, +y, abortController.signal);
+        if (resp) {
           return {
-            cancel
+            data: new Uint8Array(resp.data),
+            cacheControl: resp.cacheControl,
+            expires: resp.expires
           };
         }
-      };
+        if (header.tileType === 1 /* Mvt */) {
+          return { data: new Uint8Array() };
+        }
+        return { data: null };
+      });
+      this.tile = v3compat(this.tilev4);
       this.tiles = /* @__PURE__ */ new Map();
     }
     add(p) {
@@ -837,9 +903,8 @@ var pmtiles = (() => {
   }
   function readVarintRemainder(l, p) {
     const buf = p.buf;
-    let h, b;
-    b = buf[p.pos++];
-    h = (b & 112) >> 4;
+    let b = buf[p.pos++];
+    let h = (b & 112) >> 4;
     if (b < 128)
       return toNum(l, h);
     b = buf[p.pos++];
@@ -866,9 +931,8 @@ var pmtiles = (() => {
   }
   function readVarint(p) {
     const buf = p.buf;
-    let val, b;
-    b = buf[p.pos++];
-    val = b & 127;
+    let b = buf[p.pos++];
+    let val = b & 127;
     if (b < 128)
       return val;
     b = buf[p.pos++];
@@ -888,8 +952,8 @@ var pmtiles = (() => {
     return readVarintRemainder(val, p);
   }
   function rotate(n, xy, rx, ry) {
-    if (ry == 0) {
-      if (rx == 1) {
+    if (ry === 0) {
+      if (rx === 1) {
         xy[0] = n - 1 - xy[0];
         xy[1] = n - 1 - xy[1];
       }
@@ -899,7 +963,7 @@ var pmtiles = (() => {
     }
   }
   function idOnLevel(z, pos) {
-    const n = Math.pow(2, z);
+    const n = __pow(2, z);
     let rx = pos;
     let ry = pos;
     let t = pos;
@@ -949,11 +1013,11 @@ var pmtiles = (() => {
     if (z > 26) {
       throw Error("Tile zoom level exceeds max safe number limit (26)");
     }
-    if (x > Math.pow(2, z) - 1 || y > Math.pow(2, z) - 1) {
+    if (x > __pow(2, z) - 1 || y > __pow(2, z) - 1) {
       throw Error("tile x/y outside zoom level bounds");
     }
     const acc = tzValues[z];
-    const n = Math.pow(2, z);
+    const n = __pow(2, z);
     let rx = 0;
     let ry = 0;
     let d = 0;
@@ -970,13 +1034,13 @@ var pmtiles = (() => {
   }
   function tileIdToZxy(i) {
     let acc = 0;
-    let z = 0;
+    const z = 0;
     for (let z2 = 0; z2 < 27; z2++) {
-      const num_tiles = (1 << z2) * (1 << z2);
-      if (acc + num_tiles > i) {
+      const numTiles = (1 << z2) * (1 << z2);
+      if (acc + numTiles > i) {
         return idOnLevel(z2, i - acc);
       }
-      acc += num_tiles;
+      acc += numTiles;
     }
     throw Error("Tile zoom level exceeds max safe number limit (26)");
   }
@@ -992,19 +1056,22 @@ var pmtiles = (() => {
     return __async(this, null, function* () {
       if (compression === 1 /* None */ || compression === 0 /* Unknown */) {
         return buf;
-      } else if (compression === 2 /* Gzip */) {
-        if (typeof globalThis.DecompressionStream == "undefined") {
-          return decompressSync(new Uint8Array(buf));
-        } else {
-          let stream = new Response(buf).body;
-          let result = stream.pipeThrough(
-            new globalThis.DecompressionStream("gzip")
-          );
-          return new Response(result).arrayBuffer();
-        }
-      } else {
-        throw Error("Compression method not supported");
       }
+      if (compression === 2 /* Gzip */) {
+        if (typeof globalThis.DecompressionStream === "undefined") {
+          return decompressSync(new Uint8Array(buf));
+        }
+        const stream = new Response(buf).body;
+        if (!stream) {
+          throw Error("Failed to read response stream");
+        }
+        const result = stream.pipeThrough(
+          // biome-ignore lint: needed to detect DecompressionStream in browser+node+cloudflare workers
+          new globalThis.DecompressionStream("gzip")
+        );
+        return new Response(result).arrayBuffer();
+      }
+      throw Error("Compression method not supported");
     });
   }
   var TileType = /* @__PURE__ */ ((TileType2) => {
@@ -1041,7 +1108,7 @@ var pmtiles = (() => {
     }
     return null;
   }
-  var FileAPISource = class {
+  var FileSource = class {
     constructor(file) {
       this.file = file;
     }
@@ -1060,6 +1127,7 @@ var pmtiles = (() => {
     constructor(url, customHeaders = new Headers()) {
       this.url = url;
       this.customHeaders = customHeaders;
+      this.mustReload = false;
     }
     getKey() {
       return this.url;
@@ -1067,38 +1135,54 @@ var pmtiles = (() => {
     setHeaders(customHeaders) {
       this.customHeaders = customHeaders;
     }
-    getBytes(offset, length, signal) {
+    getBytes(offset, length, passedSignal, etag) {
       return __async(this, null, function* () {
         let controller;
-        if (!signal) {
+        let signal;
+        if (passedSignal) {
+          signal = passedSignal;
+        } else {
           controller = new AbortController();
           signal = controller.signal;
         }
         const requestHeaders = new Headers(this.customHeaders);
-        requestHeaders.set(
-          "Range",
-          "bytes=" + offset + "-" + (offset + length - 1)
-        );
+        requestHeaders.set("range", `bytes=${offset}-${offset + length - 1}`);
+        let cache;
+        if (this.mustReload) {
+          cache = "reload";
+        }
         let resp = yield fetch(this.url, {
           signal,
+          cache,
           headers: requestHeaders
+          //biome-ignore lint: "cache" is incompatible between cloudflare workers and browser
         });
-        if (resp.status === 416 && offset === 0) {
-          const content_range = resp.headers.get("Content-Range");
-          if (!content_range || !content_range.startsWith("bytes */")) {
+        if (offset === 0 && resp.status === 416) {
+          const contentRange = resp.headers.get("Content-Range");
+          if (!contentRange || !contentRange.startsWith("bytes */")) {
             throw Error("Missing content-length on 416 response");
           }
-          const actual_length = +content_range.substr(8);
+          const actualLength = +contentRange.substr(8);
           resp = yield fetch(this.url, {
             signal,
-            headers: { Range: "bytes=0-" + (actual_length - 1) }
+            cache: "reload",
+            headers: { range: `bytes=0-${actualLength - 1}` }
+            //biome-ignore lint: "cache" is incompatible between cloudflare workers and browser
           });
         }
-        if (resp.status >= 300) {
-          throw Error("Bad response code: " + resp.status);
+        let newEtag = resp.headers.get("Etag");
+        if (newEtag == null ? void 0 : newEtag.startsWith("W/")) {
+          newEtag = null;
         }
-        const content_length = resp.headers.get("Content-Length");
-        if (resp.status === 200 && (!content_length || +content_length > length)) {
+        if (resp.status === 416 || etag && newEtag && newEtag !== etag) {
+          this.mustReload = true;
+          throw new EtagMismatch(etag);
+        }
+        if (resp.status >= 300) {
+          throw Error(`Bad response code: ${resp.status}`);
+        }
+        const contentLength = resp.headers.get("Content-Length");
+        if (resp.status === 200 && (!contentLength || +contentLength > length)) {
           if (controller)
             controller.abort();
           throw Error(
@@ -1108,7 +1192,7 @@ var pmtiles = (() => {
         const a = yield resp.arrayBuffer();
         return {
           data: a,
-          etag: resp.headers.get("ETag") || void 0,
+          etag: newEtag || void 0,
           cacheControl: resp.headers.get("Cache-Control") || void 0,
           expires: resp.headers.get("Expires") || void 0
         };
@@ -1118,18 +1202,18 @@ var pmtiles = (() => {
   function getUint64(v, offset) {
     const wh = v.getUint32(offset + 4, true);
     const wl = v.getUint32(offset + 0, true);
-    return wh * Math.pow(2, 32) + wl;
+    return wh * __pow(2, 32) + wl;
   }
   function bytesToHeader(bytes, etag) {
     const v = new DataView(bytes);
-    const spec_version = v.getUint8(7);
-    if (spec_version > 3) {
+    const specVersion = v.getUint8(7);
+    if (specVersion > 3) {
       throw Error(
-        `Archive is spec version ${spec_version} but this library supports up to spec version 3`
+        `Archive is spec version ${specVersion} but this library supports up to spec version 3`
       );
     }
     return {
-      specVersion: spec_version,
+      specVersion,
       rootDirectoryOffset: getUint64(v, 8),
       rootDirectoryLength: getUint64(v, 16),
       jsonMetadataOffset: getUint64(v, 24),
@@ -1190,7 +1274,8 @@ var pmtiles = (() => {
         "PMTiles spec version 2 has been deprecated; please see github.com/protomaps/PMTiles for tools to upgrade"
       );
       return 2;
-    } else if (v.getUint16(2, true) === 1) {
+    }
+    if (v.getUint16(2, true) === 1) {
       console.warn(
         "PMTiles spec version 1 has been deprecated; please see github.com/protomaps/PMTiles for tools to upgrade"
       );
@@ -1200,7 +1285,7 @@ var pmtiles = (() => {
   }
   var EtagMismatch = class extends Error {
   };
-  function getHeaderAndRoot(source, decompress, prefetch, current_etag) {
+  function getHeaderAndRoot(source, decompress) {
     return __async(this, null, function* () {
       const resp = yield source.getBytes(0, 16384);
       const v = new DataView(resp.data);
@@ -1211,34 +1296,21 @@ var pmtiles = (() => {
         return [yield v2_default.getHeader(source)];
       }
       const headerData = resp.data.slice(0, HEADER_SIZE_BYTES);
-      let resp_etag = resp.etag;
-      if (current_etag && resp.etag != current_etag) {
-        console.warn(
-          "ETag conflict detected; your HTTP server might not support content-based ETag headers. ETags disabled for " + source.getKey()
-        );
-        resp_etag = void 0;
-      }
-      const header = bytesToHeader(headerData, resp_etag);
-      if (prefetch) {
-        const rootDirData = resp.data.slice(
-          header.rootDirectoryOffset,
-          header.rootDirectoryOffset + header.rootDirectoryLength
-        );
-        const dirKey = source.getKey() + "|" + (header.etag || "") + "|" + header.rootDirectoryOffset + "|" + header.rootDirectoryLength;
-        const rootDir = deserializeIndex(
-          yield decompress(rootDirData, header.internalCompression)
-        );
-        return [header, [dirKey, rootDir.length, rootDir]];
-      }
-      return [header, void 0];
+      const header = bytesToHeader(headerData, resp.etag);
+      const rootDirData = resp.data.slice(
+        header.rootDirectoryOffset,
+        header.rootDirectoryOffset + header.rootDirectoryLength
+      );
+      const dirKey = `${source.getKey()}|${header.etag || ""}|${header.rootDirectoryOffset}|${header.rootDirectoryLength}`;
+      const rootDir = deserializeIndex(
+        yield decompress(rootDirData, header.internalCompression)
+      );
+      return [header, [dirKey, rootDir.length, rootDir]];
     });
   }
   function getDirectory(source, decompress, offset, length, header) {
     return __async(this, null, function* () {
-      const resp = yield source.getBytes(offset, length);
-      if (header.etag && header.etag !== resp.etag) {
-        throw new EtagMismatch(resp.etag);
-      }
+      const resp = yield source.getBytes(offset, length, void 0, header.etag);
       const data = yield decompress(resp.data, header.internalCompression);
       const directory = deserializeIndex(data);
       if (directory.length === 0) {
@@ -1252,23 +1324,18 @@ var pmtiles = (() => {
       this.cache = /* @__PURE__ */ new Map();
       this.maxCacheEntries = maxCacheEntries;
       this.counter = 1;
-      this.prefetch = prefetch;
       this.decompress = decompress;
     }
-    getHeader(source, current_etag) {
+    getHeader(source) {
       return __async(this, null, function* () {
         const cacheKey = source.getKey();
-        if (this.cache.has(cacheKey)) {
-          this.cache.get(cacheKey).lastUsed = this.counter++;
-          const data = this.cache.get(cacheKey).data;
+        const cacheValue = this.cache.get(cacheKey);
+        if (cacheValue) {
+          cacheValue.lastUsed = this.counter++;
+          const data = cacheValue.data;
           return data;
         }
-        const res = yield getHeaderAndRoot(
-          source,
-          this.decompress,
-          this.prefetch,
-          current_etag
-        );
+        const res = yield getHeaderAndRoot(source, this.decompress);
         if (res[1]) {
           this.cache.set(res[1][0], {
             lastUsed: this.counter++,
@@ -1285,10 +1352,11 @@ var pmtiles = (() => {
     }
     getDirectory(source, offset, length, header) {
       return __async(this, null, function* () {
-        const cacheKey = source.getKey() + "|" + (header.etag || "") + "|" + offset + "|" + length;
-        if (this.cache.has(cacheKey)) {
-          this.cache.get(cacheKey).lastUsed = this.counter++;
-          const data = this.cache.get(cacheKey).data;
+        const cacheKey = `${source.getKey()}|${header.etag || ""}|${offset}|${length}`;
+        const cacheValue = this.cache.get(cacheKey);
+        if (cacheValue) {
+          cacheValue.lastUsed = this.counter++;
+          const data = cacheValue.data;
           return data;
         }
         const directory = yield getDirectory(
@@ -1306,18 +1374,17 @@ var pmtiles = (() => {
         return directory;
       });
     }
+    // for v2 backwards compatibility
     getArrayBuffer(source, offset, length, header) {
       return __async(this, null, function* () {
-        const cacheKey = source.getKey() + "|" + (header.etag || "") + "|" + offset + "|" + length;
-        if (this.cache.has(cacheKey)) {
-          this.cache.get(cacheKey).lastUsed = this.counter++;
-          const data = yield this.cache.get(cacheKey).data;
+        const cacheKey = `${source.getKey()}|${header.etag || ""}|${offset}|${length}`;
+        const cacheValue = this.cache.get(cacheKey);
+        if (cacheValue) {
+          cacheValue.lastUsed = this.counter++;
+          const data = yield cacheValue.data;
           return data;
         }
-        const resp = yield source.getBytes(offset, length);
-        if (header.etag && header.etag !== resp.etag) {
-          throw new EtagMismatch(header.etag);
-        }
+        const resp = yield source.getBytes(offset, length, void 0, header.etag);
         this.cache.set(cacheKey, {
           lastUsed: this.counter++,
           data: resp.data
@@ -1330,9 +1397,9 @@ var pmtiles = (() => {
       if (this.cache.size > this.maxCacheEntries) {
         let minUsed = Infinity;
         let minKey = void 0;
-        this.cache.forEach((cache_value, key) => {
-          if (cache_value.lastUsed < minUsed) {
-            minUsed = cache_value.lastUsed;
+        this.cache.forEach((cacheValue, key) => {
+          if (cacheValue.lastUsed < minUsed) {
+            minUsed = cacheValue.lastUsed;
             minKey = key;
           }
         });
@@ -1341,31 +1408,31 @@ var pmtiles = (() => {
         }
       }
     }
-    invalidate(source, current_etag) {
+    invalidate(source) {
       return __async(this, null, function* () {
         this.cache.delete(source.getKey());
-        yield this.getHeader(source, current_etag);
       });
     }
   };
   var SharedPromiseCache = class {
     constructor(maxCacheEntries = 100, prefetch = true, decompress = defaultDecompress) {
       this.cache = /* @__PURE__ */ new Map();
+      this.invalidations = /* @__PURE__ */ new Map();
       this.maxCacheEntries = maxCacheEntries;
       this.counter = 1;
-      this.prefetch = prefetch;
       this.decompress = decompress;
     }
-    getHeader(source, current_etag) {
+    getHeader(source) {
       return __async(this, null, function* () {
         const cacheKey = source.getKey();
-        if (this.cache.has(cacheKey)) {
-          this.cache.get(cacheKey).lastUsed = this.counter++;
-          const data = yield this.cache.get(cacheKey).data;
+        const cacheValue = this.cache.get(cacheKey);
+        if (cacheValue) {
+          cacheValue.lastUsed = this.counter++;
+          const data = yield cacheValue.data;
           return data;
         }
         const p = new Promise((resolve, reject) => {
-          getHeaderAndRoot(source, this.decompress, this.prefetch, current_etag).then((res) => {
+          getHeaderAndRoot(source, this.decompress).then((res) => {
             if (res[1]) {
               this.cache.set(res[1][0], {
                 lastUsed: this.counter++,
@@ -1384,10 +1451,11 @@ var pmtiles = (() => {
     }
     getDirectory(source, offset, length, header) {
       return __async(this, null, function* () {
-        const cacheKey = source.getKey() + "|" + (header.etag || "") + "|" + offset + "|" + length;
-        if (this.cache.has(cacheKey)) {
-          this.cache.get(cacheKey).lastUsed = this.counter++;
-          const data = yield this.cache.get(cacheKey).data;
+        const cacheKey = `${source.getKey()}|${header.etag || ""}|${offset}|${length}`;
+        const cacheValue = this.cache.get(cacheKey);
+        if (cacheValue) {
+          cacheValue.lastUsed = this.counter++;
+          const data = yield cacheValue.data;
           return data;
         }
         const p = new Promise((resolve, reject) => {
@@ -1402,19 +1470,18 @@ var pmtiles = (() => {
         return p;
       });
     }
+    // for v2 backwards compatibility
     getArrayBuffer(source, offset, length, header) {
       return __async(this, null, function* () {
-        const cacheKey = source.getKey() + "|" + (header.etag || "") + "|" + offset + "|" + length;
-        if (this.cache.has(cacheKey)) {
-          this.cache.get(cacheKey).lastUsed = this.counter++;
-          const data = yield this.cache.get(cacheKey).data;
+        const cacheKey = `${source.getKey()}|${header.etag || ""}|${offset}|${length}`;
+        const cacheValue = this.cache.get(cacheKey);
+        if (cacheValue) {
+          cacheValue.lastUsed = this.counter++;
+          const data = yield cacheValue.data;
           return data;
         }
         const p = new Promise((resolve, reject) => {
-          source.getBytes(offset, length).then((resp) => {
-            if (header.etag && header.etag !== resp.etag) {
-              throw new EtagMismatch(resp.etag);
-            }
+          source.getBytes(offset, length, void 0, header.etag).then((resp) => {
             resolve(resp.data);
             if (this.cache.has(cacheKey)) {
             }
@@ -1431,23 +1498,33 @@ var pmtiles = (() => {
       if (this.cache.size >= this.maxCacheEntries) {
         let minUsed = Infinity;
         let minKey = void 0;
-        this.cache.forEach(
-          (cache_value, key) => {
-            if (cache_value.lastUsed < minUsed) {
-              minUsed = cache_value.lastUsed;
-              minKey = key;
-            }
+        this.cache.forEach((cacheValue, key) => {
+          if (cacheValue.lastUsed < minUsed) {
+            minUsed = cacheValue.lastUsed;
+            minKey = key;
           }
-        );
+        });
         if (minKey) {
           this.cache.delete(minKey);
         }
       }
     }
-    invalidate(source, current_etag) {
+    invalidate(source) {
       return __async(this, null, function* () {
+        const key = source.getKey();
+        if (this.invalidations.get(key)) {
+          return yield this.invalidations.get(key);
+        }
         this.cache.delete(source.getKey());
-        yield this.getHeader(source, current_etag);
+        const p = new Promise((resolve, reject) => {
+          this.getHeader(source).then((h) => {
+            resolve();
+            this.invalidations.delete(key);
+          }).catch((e) => {
+            reject(e);
+          });
+        });
+        this.invalidations.set(key, p);
       });
     }
   };
@@ -1469,14 +1546,19 @@ var pmtiles = (() => {
         this.cache = new SharedPromiseCache();
       }
     }
+    /**
+     * Return the header of the archive,
+     * including information such as tile type, min/max zoom, bounds, and summary statistics.
+     */
     getHeader() {
       return __async(this, null, function* () {
         return yield this.cache.getHeader(this.source);
       });
     }
+    /** @hidden */
     getZxyAttempt(z, x, y, signal) {
       return __async(this, null, function* () {
-        const tile_id = zxyToTileId(z, x, y);
+        const tileId = zxyToTileId(z, x, y);
         const header = yield this.cache.getHeader(this.source);
         if (header.specVersion < 3) {
           return v2_default.getZxy(header, this.source, this.cache, z, x, y, signal);
@@ -1484,35 +1566,32 @@ var pmtiles = (() => {
         if (z < header.minZoom || z > header.maxZoom) {
           return void 0;
         }
-        let d_o = header.rootDirectoryOffset;
-        let d_l = header.rootDirectoryLength;
+        let dO = header.rootDirectoryOffset;
+        let dL = header.rootDirectoryLength;
         for (let depth = 0; depth <= 3; depth++) {
           const directory = yield this.cache.getDirectory(
             this.source,
-            d_o,
-            d_l,
+            dO,
+            dL,
             header
           );
-          const entry = findTile(directory, tile_id);
+          const entry = findTile(directory, tileId);
           if (entry) {
             if (entry.runLength > 0) {
               const resp = yield this.source.getBytes(
                 header.tileDataOffset + entry.offset,
                 entry.length,
-                signal
+                signal,
+                header.etag
               );
-              if (header.etag && header.etag !== resp.etag) {
-                throw new EtagMismatch(resp.etag);
-              }
               return {
                 data: yield this.decompress(resp.data, header.tileCompression),
                 cacheControl: resp.cacheControl,
                 expires: resp.expires
               };
-            } else {
-              d_o = header.leafDirectoryOffset + entry.offset;
-              d_l = entry.length;
             }
+            dO = header.leafDirectoryOffset + entry.offset;
+            dL = entry.length;
           } else {
             return void 0;
           }
@@ -1520,30 +1599,34 @@ var pmtiles = (() => {
         throw Error("Maximum directory depth exceeded");
       });
     }
+    /**
+     * Primary method to get a single tile bytes from an archive.
+     *
+     * Returns undefined if the tile does not exist in the archive.
+     */
     getZxy(z, x, y, signal) {
       return __async(this, null, function* () {
         try {
           return yield this.getZxyAttempt(z, x, y, signal);
         } catch (e) {
           if (e instanceof EtagMismatch) {
-            this.cache.invalidate(this.source, e.message);
+            this.cache.invalidate(this.source);
             return yield this.getZxyAttempt(z, x, y, signal);
-          } else {
-            throw e;
           }
+          throw e;
         }
       });
     }
+    /** @hidden */
     getMetadataAttempt() {
       return __async(this, null, function* () {
         const header = yield this.cache.getHeader(this.source);
         const resp = yield this.source.getBytes(
           header.jsonMetadataOffset,
-          header.jsonMetadataLength
+          header.jsonMetadataLength,
+          void 0,
+          header.etag
         );
-        if (header.etag && header.etag !== resp.etag) {
-          throw new EtagMismatch(resp.etag);
-        }
         const decompressed = yield this.decompress(
           resp.data,
           header.internalCompression
@@ -1552,17 +1635,19 @@ var pmtiles = (() => {
         return JSON.parse(dec.decode(decompressed));
       });
     }
+    /**
+     * Return the arbitrary JSON metadata of the archive.
+     */
     getMetadata() {
       return __async(this, null, function* () {
         try {
           return yield this.getMetadataAttempt();
         } catch (e) {
           if (e instanceof EtagMismatch) {
-            this.cache.invalidate(this.source, e.message);
+            this.cache.invalidate(this.source);
             return yield this.getMetadataAttempt();
-          } else {
-            throw e;
           }
+          throw e;
         }
       });
     }

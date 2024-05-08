@@ -324,7 +324,7 @@ function fetchFile(url, metadata, header) {
 }
 
 function saveMap(file, name, url) {
-  let p = new pmtiles.PMTiles(new pmtiles.FileAPISource(file));
+  let p = new pmtiles.PMTiles(new pmtiles.FileSource(file));
   p.getMetadata().then(metadata => {
     if (metadata.format == "pbf" || metadata.vector_layers) {
       Swal.fire({
@@ -380,7 +380,7 @@ function saveMap(file, name, url) {
 }
 
 function createRasterLayer(key, value, addToMap) {
-  let p = new pmtiles.PMTiles(new pmtiles.FileAPISource(value.pmtiles));
+  let p = new pmtiles.PMTiles(new pmtiles.FileSource(value.pmtiles));
   let layer = pmtiles.leafletRasterLayer(p, {
     key: key,
     bounds: value.bounds,
