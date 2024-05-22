@@ -1,5 +1,5 @@
 const app = {
-  version: "2024.05.08.1"
+  version: "2024.05.22.1"
 }
 
 const mapStore = localforage.createInstance({
@@ -49,7 +49,7 @@ map.fitWorld();
 
 // Add file control
 L.Control.AddFile = L.Control.extend({
-  onAdd: function(map) {
+  onAdd: (map) => {
     const ua = window.navigator.userAgent;
     const iOS = !!ua.match(/iP(ad|od|hone)/i);
     fileInput = L.DomUtil.create("input", "hidden");
@@ -69,7 +69,7 @@ L.Control.AddFile = L.Control.extend({
         <i class="icon-info_outline"></i>
       </a>
     `;
-    L.DomEvent.on(div, "click", function (e) {
+    L.DomEvent.on(div, "click", (e) => {
       L.DomEvent.stopPropagation(e);
     });
     return div
@@ -82,14 +82,14 @@ L.control.addfile = (opts) => {
 
 // Fit bounds control
 L.Control.Fitbounds = L.Control.extend({
-  onAdd: function(map) {    
+  onAdd: (map) => {    
     const div = L.DomUtil.create("div", "leaflet-bar leaflet-control");
     div.innerHTML = `
       <a class="leaflet-bar-part leaflet-bar-part-single fit-bounds-btn" title="Zoom To Map" onclick="if (map.bounds) {map.fitBounds(map.bounds, {animate: false})};">
         <i class="icon-zoom_out_map"></i>
       </a>
     `;
-    L.DomEvent.on(div, "click", function (e) {
+    L.DomEvent.on(div, "click", (e) => {
       L.DomEvent.stopPropagation(e);
     });
     return div
@@ -102,10 +102,10 @@ L.control.fitbounds = (opts) => {
 
 // Save map control
 L.Control.Savemap = L.Control.extend({
-  onAdd: function(map) {    
+  onAdd: (map) => {    
     const div = L.DomUtil.create("div");
     div.innerHTML = "<button id='save-map-button'>Save Map</button>";
-    L.DomEvent.on(div, "click", function (e) {
+    L.DomEvent.on(div, "click", (e) => {
       L.DomEvent.stopPropagation(e);
     });
     return div
@@ -212,12 +212,12 @@ function switchBaseLayer(name) {
 
 function loadSavedMaps() {
   let keys = [];
-  mapStore.iterate(function(value, key) {
+  mapStore.iterate((value, key) => {
     keys.push(key);
     createRasterLayer(key, value);
-  }).then(function() {
+  }).then(() => {
     handleURLparams(keys);
-  }).catch(function(err) {
+  }).catch((err) => {
     console.log(err);
   });
 }
@@ -347,7 +347,7 @@ function saveMap(file, name, url) {
           pmtiles: file
         };
 
-        mapStore.setItem(key, value).then(function (value) {
+        mapStore.setItem(key, value).then((value) => {
           createRasterLayer(key, value, true);
           if (url) {
             map.removeControl(controls.savemapCtrl);
@@ -455,7 +455,7 @@ function removeLayer(key, name, size) {
 
 function addVectorLayer(file, name) {
   const reader = new FileReader();
-  reader.onload = function(e) {
+  reader.onload = (e) => {
     let geojson = JSON.parse(reader.result);
     name = geojson.name ? geojson.name : name;
     let radius = 4;
