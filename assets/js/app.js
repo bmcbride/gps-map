@@ -1,5 +1,5 @@
 const app = {
-  version: "2024.05.22.1"
+  version: "2024.06.14.1"
 }
 
 const mapStore = localforage.createInstance({
@@ -231,40 +231,75 @@ function handleURLparams(keys) {
       let layer = layers[key];
       map.addLayer(layer);
       map.fitBounds(layer.options.bounds, {animate: false});
+      // begin check for updated version
+      if (navigator.onLine) {
+        let p = new pmtiles.PMTiles(key);
+        p.getMetadata().then(metadata => {
+          if (layer.options.version !== metadata.version) {
+            p.getHeader().then(header => {
+              Swal.fire({
+                icon: "question",
+                text: "There is a new version of this map. Would you like to download the update?",
+                confirmButtonText: "Update",
+                confirmButtonColor: "#3085d6",
+                showCancelButton: true,
+                showCloseButton: true,
+                reverseButtons: true
+              }).then((result) => {
+                if (result.isConfirmed) {
+                  fetchFile(key, metadata, header);
+                }
+              });
+            })
+          }
+        }).catch((err) => {
+          console.log("Error checking for updates");
+        });
+      }
+      // end check for updated version
     } else {
-      let p = new pmtiles.PMTiles(key);
-      p.getMetadata().then(metadata => {
-        if (metadata.format == "pbf" || metadata.vector_layers) {
+      if (navigator.onLine) {
+        let p = new pmtiles.PMTiles(key);
+        p.getMetadata().then(metadata => {
+          if (metadata.format == "pbf" || metadata.vector_layers) {
+            Swal.fire({
+              icon: "error",
+              text: "Only raster tilesets are supported!",
+              showCloseButton: true,
+              showConfirmButton: false
+            });
+          } else {
+            p.getHeader().then(header => {
+              if (metadata && header) {
+                layers.tempLayer = pmtiles.leafletRasterLayer(p, {
+                  updateWhenIdle: false,
+                  maxZoom: map.getMaxZoom(),
+                  maxNativeZoom: Number(header.maxZoom),
+                  attribution: metadata.attribution
+                });
+                map.addLayer(layers.tempLayer);
+                map.fitBounds([[header.minLat, header.minLon], [header.maxLat, header.maxLon]], {animate: false});
+                map.addControl(controls.savemapCtrl);
+                document.getElementById("save-map-button").onclick = () => fetchFile(key, metadata, header);
+              }
+            });
+          }
+        }).catch((err) => {
           Swal.fire({
             icon: "error",
-            text: "Only raster tilesets are supported!",
+            text: "There was an error loading the map referenced in the URL. Please check that it is a valid file.",
             showCloseButton: true,
             showConfirmButton: false
           });
-        } else {
-          p.getHeader().then(header => {
-            if (metadata && header) {
-              layers.tempLayer = pmtiles.leafletRasterLayer(p, {
-                updateWhenIdle: false,
-                maxZoom: map.getMaxZoom(),
-                maxNativeZoom: Number(header.maxZoom),
-                attribution: metadata.attribution
-              });
-              map.addLayer(layers.tempLayer);
-              map.fitBounds([[header.minLat, header.minLon], [header.maxLat, header.maxLon]], {animate: false});
-              map.addControl(controls.savemapCtrl);
-              document.getElementById("save-map-button").onclick = () => fetchFile(key, metadata, header);
-            }
-          });
-        }
-      }).catch((err) => {
+        });
+      } else {
         Swal.fire({
           icon: "error",
-          text: "There was an error loading the map referenced in the URL. Please check that it is a valid file.",
+          text: "Cannot load new maps when offline!",
           showCloseButton: true,
           showConfirmButton: false
         });
-      });
+      }
     }
   } else {
     // controls.locateCtrl.start();
@@ -340,6 +375,7 @@ function saveMap(file, name, url) {
           name: metadata.name ? metadata.name : name,
           description: metadata.description ? metadata.description : "",
           attribution: metadata.attribution ? metadata.attribution : "",
+          version: metadata.version ? metadata.version : "1",
           bounds: [[header.minLat, header.minLon], [header.maxLat, header.maxLon]],
           maxZoom: header.maxZoom,
           minZoom: header.minZoom,
@@ -351,7 +387,9 @@ function saveMap(file, name, url) {
           createRasterLayer(key, value, true);
           if (url) {
             map.removeControl(controls.savemapCtrl);
-            map.removeLayer(layers.tempLayer);
+            if (layers.tempLayer) {
+              map.removeLayer(layers.tempLayer);
+            }
           }
           Swal.fire({
             icon: "success",
@@ -388,7 +426,8 @@ function createRasterLayer(key, value, addToMap) {
     maxZoom: map.getMaxZoom(),
     maxNativeZoom: Number(value.maxZoom),
     detectRetina: true,
-    attribution: value.attribution
+    attribution: value.attribution,
+    version: value.version
   });
   layers[key] = layer;
   addRasterLayer(layer, value);
