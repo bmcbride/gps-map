@@ -1176,7 +1176,9 @@ var pmtiles = (() => {
         }
         if (resp.status === 416 || etag && newEtag && newEtag !== etag) {
           this.mustReload = true;
-          throw new EtagMismatch(etag);
+          throw new EtagMismatch(
+            `Server returned non-matching ETag ${etag} after one retry. Check browser extensions and servers for issues that may affect correct ETag headers.`
+          );
         }
         if (resp.status >= 300) {
           throw Error(`Bad response code: ${resp.status}`);
