@@ -6,9 +6,9 @@ workbox.setConfig({
 });
 
 workbox.precaching.precacheAndRoute([
-  {url: 'index.html', revision: '02.25.25.1'},
+  {url: 'index.html', revision: '02.25.25.2'},
   {url: 'manifest.json', revision: '11.15.23.1'},
-  {url: 'assets/js/app.js', revision: '02.14.25.1'},
+  {url: 'assets/js/app.js', revision: '02.25.25.1'},
   {url: 'assets/css/app.css', revision: '11.15.23.1'},
   {url: 'assets/img/32.png', revision: '11.15.23.1'},
   {url: 'assets/img/87.png', revision: '11.15.23.1'},

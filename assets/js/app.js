@@ -1,5 +1,5 @@
 const app = {
-  version: "2025.02.14.1"
+  version: "2025.02.25.1"
 }
 
 const mapStore = localforage.createInstance({
@@ -50,8 +50,7 @@ map.fitWorld();
 // Add file control
 L.Control.AddFile = L.Control.extend({
   onAdd: (map) => {
-    const ua = window.navigator.userAgent;
-    const iOS = !!ua.match(/iP(ad|od|hone)/i);
+    const iOS = ["iPad Simulator","iPhone Simulator","iPod Simulator","iPad","iPhone","iPod"].includes(navigator.platform) || (navigator.userAgent.includes("Mac") && "ontouchend" in document);
     fileInput = L.DomUtil.create("input", "hidden");
     fileInput.type = "file";
     fileInput.accept = iOS ? "*" : ".pmtiles, .geojson";
