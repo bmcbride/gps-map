@@ -44,7 +44,7 @@ The app uses a standard HTML file input and the *FileReader* API to read the con
 
 You can also append the `map` parameter to load a PMTiles file hosted on the web. This is a great way to quickly and easily share a map with others:
 
-- https://gpsmap.app/?map=https://protomaps.github.io/PMTiles/usgs-mt-whitney-8-15-webp-512.pmtiles
+- https://gpsmap.app/?map=https://pmtiles.io/usgs-mt-whitney-8-15-webp-512.pmtiles
 
 ## Leaflet Configurations & Other Niceties
 Below are a few of the Leaflet configurations I found useful on this project.
