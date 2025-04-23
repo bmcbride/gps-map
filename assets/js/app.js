@@ -1,5 +1,5 @@
 const app = {
-  version: "2025.02.25.1"
+  version: "2025.04.22.1"
 }
 
 const mapStore = localforage.createInstance({
@@ -8,6 +8,7 @@ const mapStore = localforage.createInstance({
 });
 
 let layers = {};
+let wakeLock = null;
 
 const map = L.map("map", {
   zoomSnap: L.Browser.mobile ? 0 : 1,
@@ -650,3 +651,20 @@ window.addEventListener("online", (e) => {
   document.getElementById("status-indicator").style.color = "green";
   document.getElementById("status-msg").innerHTML = "online";
 });
+
+function requestWakeLock() {
+  try {
+    wakeLock = navigator.wakeLock.request("screen");
+  } catch (err) {
+    // The Wake Lock request has failed - usually system related, such as battery.
+  }
+}
+
+if (navigator.maxTouchPoints > 1) {
+  requestWakeLock();
+  document.addEventListener("visibilitychange", () => {
+    if (wakeLock !== null && document.visibilityState === "visible") {
+      requestWakeLock();
+    }
+  });
+}
