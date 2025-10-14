@@ -1,5 +1,5 @@
 const app = {
-  version: "2025.04.22.1"
+  version: "2025.10.14.1"
 }
 
 const mapStore = localforage.createInstance({
@@ -56,13 +56,13 @@ L.Control.AddFile = L.Control.extend({
     fileInput.type = "file";
     fileInput.accept = iOS ? "*" : ".pmtiles, .geojson";
     fileInput.style.display = "none";
-    
+
     fileInput.addEventListener("change", function () {
       const file = fileInput.files[0];
       handleFile(file);
       this.value = "";
     }, false);
-    
+
     const div = L.DomUtil.create("div", "leaflet-bar leaflet-control");
     div.innerHTML = `
       <a class="leaflet-bar-part leaflet-bar-part-single file-control-btn" style="height: 40px; width: 40px; line-height: 40px;" title="App Info" onclick="showInfo();">
@@ -82,7 +82,7 @@ L.control.addfile = (opts) => {
 
 // Fit bounds control
 L.Control.Fitbounds = L.Control.extend({
-  onAdd: (map) => {    
+  onAdd: (map) => {
     const div = L.DomUtil.create("div", "leaflet-bar leaflet-control");
     div.innerHTML = `
       <a class="leaflet-bar-part leaflet-bar-part-single fit-bounds-btn" title="Zoom To Map" onclick="if (map.bounds) {map.fitBounds(map.bounds, {animate: false})};">
@@ -102,7 +102,7 @@ L.control.fitbounds = (opts) => {
 
 // Save map control
 L.Control.Savemap = L.Control.extend({
-  onAdd: (map) => {    
+  onAdd: (map) => {
     const div = L.DomUtil.create("div");
     div.innerHTML = "<button id='save-map-button'>Save Map</button>";
     L.DomEvent.on(div, "click", (e) => {
@@ -506,15 +506,15 @@ function addVectorLayer(file, name) {
         tolerance: 10
       }),
       style: (feature) => {
-        return {	
+        return {
           color: feature.properties.hasOwnProperty("stroke") ? feature.properties["stroke"] : feature.properties["marker-color"] ? feature.properties["marker-color"] : feature.geometry.type == "Point" ? "#ffffff" : "#ff0000",
           opacity: feature.properties.hasOwnProperty("stroke-opacity") ? feature.properties["stroke-opacity"] : 1.0,
           weight: feature.properties.hasOwnProperty("stroke-width") ? feature.properties["stroke-width"] : feature.geometry.type == "Point" ? 1.5 : 3,
           fillColor: feature.properties.hasOwnProperty("fill") ? feature.properties["fill"] : feature.properties["marker-color"] ? feature.properties["marker-color"] : "#ff0000",
           fillOpacity: feature.properties.hasOwnProperty("fill-opacity") ? feature.properties["fill-opacity"] : feature.geometry.type != "Point" ? 0.2 : feature.geometry.type == "Point" ? 1 : "",
-        };	
+        };
       },
-      pointToLayer: (feature, latlng) => {	
+      pointToLayer: (feature, latlng) => {
         const size = feature.properties.hasOwnProperty("marker-size") ? feature.properties["marker-size"] : "medium";
         const sizes = {
           small: 4,

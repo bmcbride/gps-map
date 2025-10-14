@@ -6,9 +6,9 @@ workbox.setConfig({
 });
 
 workbox.precaching.precacheAndRoute([
-  {url: 'index.html', revision: '02.25.25.2'},
+  {url: 'index.html', revision: '10.14.25.1'},
   {url: 'manifest.json', revision: '11.15.23.1'},
-  {url: 'assets/js/app.js', revision: '04.22.25.1'},
+  {url: 'assets/js/app.js', revision: '10.14.25.1'},
   {url: 'assets/css/app.css', revision: '11.15.23.1'},
   {url: 'assets/img/32.png', revision: '11.15.23.1'},
   {url: 'assets/img/87.png', revision: '11.15.23.1'},
@@ -30,7 +30,7 @@ workbox.precaching.precacheAndRoute([
   {url: 'assets/vendor/leaflet-locatecontrol-0.83.1/L.Control.Locate.min.js', revision: '02.14.25.1'},
   {url: 'assets/vendor/pmtiles-4.3.0/pmtiles.js', revision: '02.25.25.1'},
   {url: 'assets/vendor/pmtiles-4.3.0/pmtiles.js.map', revision: '02.25.25.1'},
-  {url: 'assets/vendor/sweetalert2-11.16.1/sweetalert2.all.min.js', revision: '02.14.25.1'}
+  {url: 'assets/vendor/sweetalert2-11.26.2/sweetalert2.all.min.js', revision: '10.14.25.1'}
 ], {
   ignoreURLParametersMatching: [/.*/]
 });
