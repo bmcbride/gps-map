@@ -1,14 +1,14 @@
-importScripts('assets/vendor/workbox-7.3.0/workbox-sw.js');
+importScripts('assets/vendor/workbox-7.4.0/workbox-sw.js');
 
 workbox.setConfig({
   debug: false,
-  modulePathPrefix: 'assets/vendor/workbox-7.3.0/'
+  modulePathPrefix: 'assets/vendor/workbox-7.4.0/'
 });
 
 workbox.precaching.precacheAndRoute([
   {url: 'index.html', revision: '10.14.25.1'},
   {url: 'manifest.json', revision: '11.15.23.1'},
-  {url: 'assets/js/app.js', revision: '10.14.25.1'},
+  {url: 'assets/js/app.js', revision: '02.19.25.1'},
   {url: 'assets/css/app.css', revision: '11.15.23.1'},
   {url: 'assets/img/32.png', revision: '11.15.23.1'},
   {url: 'assets/img/87.png', revision: '11.15.23.1'},
@@ -26,11 +26,11 @@ workbox.precaching.precacheAndRoute([
   {url: 'assets/vendor/leaflet-1.9.4/images/marker-shadow.png', revision: '11.15.23.1'},
   {url: 'assets/vendor/leaflet-1.9.4/leaflet.css', revision: '11.15.23.1'},
   {url: 'assets/vendor/leaflet-1.9.4/leaflet.js', revision: '11.15.23.1'},
-  {url: 'assets/vendor/leaflet-locatecontrol-0.83.1/L.Control.Locate.min.css', revision: '02.14.25.1'},
-  {url: 'assets/vendor/leaflet-locatecontrol-0.83.1/L.Control.Locate.min.js', revision: '02.14.25.1'},
-  {url: 'assets/vendor/pmtiles-4.3.0/pmtiles.js', revision: '02.25.25.1'},
-  {url: 'assets/vendor/pmtiles-4.3.0/pmtiles.js.map', revision: '02.25.25.1'},
-  {url: 'assets/vendor/sweetalert2-11.26.2/sweetalert2.all.min.js', revision: '10.14.25.1'}
+  {url: 'assets/vendor/leaflet-locatecontrol-0.88.0/L.Control.Locate.min.css', revision: '02.19.26.1'},
+  {url: 'assets/vendor/leaflet-locatecontrol-0.88.0/L.Control.Locate.min.js', revision: '02.19.26.1'},
+  {url: 'assets/vendor/pmtiles-4.4.0/pmtiles.js', revision: '02.19.26.1'},
+  {url: 'assets/vendor/pmtiles-4.4.0/pmtiles.js.map', revision: '02.19.26.1'},
+  {url: 'assets/vendor/sweetalert2-11.26.19/sweetalert2.all.min.js', revision: '02.19.26.1'}
 ], {
   ignoreURLParametersMatching: [/.*/]
 });
