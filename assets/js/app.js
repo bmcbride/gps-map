@@ -13,9 +13,9 @@ let wakeLock = null;
 const map = L.map("map", {
   zoomSnap: L.Browser.mobile ? 0 : 1,
   maxZoom: 22,
-  zoomControl: false
+  zoomControl: false,
+  attributionControl: false
 });
-map.attributionControl.setPrefix(`<span id="status-indicator" style="color:${navigator.onLine ? "green" : "red"}">&#9673;</span>&nbsp;<span id="status-msg">${navigator.onLine ? "online" : "offline"}</span>`);
 
 map.on("load", (e) => {
   loadSavedMaps();
@@ -65,7 +65,7 @@ L.Control.AddFile = L.Control.extend({
 
     const div = L.DomUtil.create("div", "leaflet-bar leaflet-control");
     div.innerHTML = `
-      <a class="leaflet-bar-part leaflet-bar-part-single file-control-btn" style="height: 40px; width: 40px; line-height: 40px;" title="App Info" onclick="showInfo();">
+      <a class="leaflet-bar-part leaflet-bar-part-single file-control-btn" title="App Info" onclick="showInfo();">
         <i class="icon-info_outline"></i>
       </a>
     `;
@@ -186,12 +186,18 @@ const controls = {
     }
   }).addTo(map),
 
+  attributionCtrl: L.control.attribution({
+    // prefix: `<span id="status-indicator" style="color:${navigator.onLine ? "green" : "red"}">&#9673;</span>&nbsp;<span id="status-msg">${navigator.onLine ? "online" : "offline"}</span>`,
+    prefix: null,
+    position: "bottomleft"
+  }).addTo(map),
+
   scaleCtrl: L.control.scale({
     position: "bottomleft"
   }).addTo(map),
 
   fileCtrl: L.control.addfile({
-    position: "bottomleft"
+    position: "bottomright"
   }).addTo(map),
 
   savemapCtrl: L.control.savemap({
@@ -576,7 +582,30 @@ function showInfo() {
     },
     iconHtml: "<img src='assets/img/87.png'>",
     title: "gpsmap.app",
-    html: `A simple, offline capable map viewer with GPS integration. Import a raster <a href='https://docs.protomaps.com/pmtiles/create#geotiff' target='_blank'>PMTiles</a> file directly from your device or link to a hosted file using the URL map parameter.<p>Version: <b>${app.version}</b><br><a href='javascript: showCredits();'>Open Source Credits</a></p>`,
+    html: `
+      A simple, offline capable map viewer with GPS integration. <a href='javascript: showCredits();'>Open Source Credits</a>
+      <p>Version: <b>${app.version}</b></p>
+      <p>
+        <form>
+          <input type="checkbox" id="wakelockCheckbox" ${wakeLock ? "checked" : ""}>
+          <label for="wakelockCheckbox"> Keep Screen Awake</label><br>
+        </form>
+      </p>
+    `,
+    didOpen: () => {
+      const checkbox = document.getElementById("wakelockCheckbox");
+      checkbox.addEventListener("change", (e) => {
+        if (e.target.checked) {
+          acquireLock();
+        } else {
+          releaseLock();
+        }
+      });
+    },
+    // preConfirm: () => {
+    //   const checkbox = document.getElementById("wakelockCheckbox");
+    //   checkboxState = checkbox.checked;
+    // },
     showCloseButton: true,
     showConfirmButton: true,
     confirmButtonText: "Import Map",
@@ -642,29 +671,34 @@ dropArea.addEventListener("drop", (e) => {
   handleFile(file);
 }, false);
 
-window.addEventListener("offline", (e) => {
-  document.getElementById("status-indicator").style.color = "red";
-  document.getElementById("status-msg").innerHTML = "offline";
-});
+function acquireLock() {
+  navigator.wakeLock.request("screen").then((wakeLockSentinel) => {
+    // Store the resolved WakeLockSentinel object
+    wakeLock = wakeLockSentinel;
+    console.log("Screen Wake Lock acquired");
+    alert("Screen Wake Lock acquired");
+  }).catch((err) => {
+    console.error(`${err.name}: ${err.message}`);
+    alert("error");
+  });
+}
 
-window.addEventListener("online", (e) => {
-  document.getElementById("status-indicator").style.color = "green";
-  document.getElementById("status-msg").innerHTML = "online";
-});
-
-function requestWakeLock() {
-  try {
-    wakeLock = navigator.wakeLock.request("screen");
-  } catch (err) {
-    // The Wake Lock request has failed - usually system related, such as battery.
+// To release the lock later
+function releaseLock() {
+  if (wakeLock !== null) {
+    wakeLock.release().then(() => {
+      wakeLock = null;
+      console.log("Screen Wake Lock released");
+      alert("Screen Wake Lock released");
+    });
   }
 }
 
-if (navigator.maxTouchPoints > 1) {
-  requestWakeLock();
-  document.addEventListener("visibilitychange", () => {
-    if (wakeLock !== null && document.visibilityState === "visible") {
-      requestWakeLock();
-    }
-  });
-}
+// if (navigator.maxTouchPoints > 1) {
+//   acquireLock();
+//   document.addEventListener("visibilitychange", () => {
+//     if (wakeLock !== null && document.visibilityState === "visible") {
+//       acquireLock();
+//     }
+//   });
+// }
