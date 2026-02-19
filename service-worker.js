@@ -6,7 +6,7 @@ workbox.setConfig({
 });
 
 workbox.precaching.precacheAndRoute([
-  {url: 'index.html', revision: '10.14.25.1'},
+  {url: 'index.html', revision: '02.19.25.1'},
   {url: 'manifest.json', revision: '11.15.23.1'},
   {url: 'assets/js/app.js', revision: '02.19.25.1'},
   {url: 'assets/css/app.css', revision: '11.15.23.1'},
