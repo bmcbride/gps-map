@@ -1,5 +1,5 @@
 const app = {
-  version: "2026.02.19.2"
+  version: "2026.02.19.3"
 }
 
 const mapStore = localforage.createInstance({
@@ -675,11 +675,10 @@ function acquireLock() {
   navigator.wakeLock.request("screen").then((wakeLockSentinel) => {
     // Store the resolved WakeLockSentinel object
     wakeLock = wakeLockSentinel;
-    console.log("Screen Wake Lock acquired");
-    alert("Screen Wake Lock acquired");
+    // alert("Screen Wake Lock acquired");
   }).catch((err) => {
     console.error(`${err.name}: ${err.message}`);
-    alert("error");
+    // alert("error");
   });
 }
 
@@ -688,8 +687,7 @@ function releaseLock() {
   if (wakeLock !== null) {
     wakeLock.release().then(() => {
       wakeLock = null;
-      console.log("Screen Wake Lock released");
-      alert("Screen Wake Lock released");
+      // alert("Screen Wake Lock released");
     });
   }
 }
