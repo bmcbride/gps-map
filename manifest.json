@@ -2,8 +2,10 @@
   "name": "GPS Map",
   "short_name": "GPS Map",
   "description": "An offline capable map viewer with GPS integration",
-  "start_url": "index.html",
+  "start_url": "/index.html",
+  "scope": "/",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
   "background_color":  "white",
   "theme_color": "black",
   "icons": [
