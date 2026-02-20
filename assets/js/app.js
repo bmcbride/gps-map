@@ -1,5 +1,5 @@
 const app = {
-  version: "2026.02.19.8"
+  version: "2026.02.20.1"
 }
 
 const mapStore = localforage.createInstance({
@@ -536,7 +536,20 @@ function handleFile(file) {
 
 function addRasterLayer(layer, value) {
   controls.layerCtrl.addBaseLayer(layer, `
-    <span name="${value.name}" oncontextmenu="removeLayer('${layer.options.key}', '${value.name}', '${value.pmtiles.size}'); L.DomEvent.disableClickPropagation(this); return false;" style="user-select: none;"> ${value.name.replace(/_/g, " ")}</span>
+    <span
+      name="${value.name}"
+      ${
+        L.Browser.mobile ? `
+          ontouchstart="this._pressTimer = setTimeout(() => {removeLayer('${layer.options.key}', '${value.name}', '${value.pmtiles.size}'); L.DomEvent.disableClickPropagation(this); return false;}, 600);"
+          ontouchend="clearTimeout(this._pressTimer);"
+        ` : `
+          oncontextmenu="removeLayer('${layer.options.key}', '${value.name}', '${value.pmtiles.size}'); L.DomEvent.disableClickPropagation(this); return false;"
+        `
+      }
+      style="user-select: none;"
+    >
+    ${value.name.replace(/_/g, " ")}
+    </span>
   `);
   controls.layerCtrl.addTo(map);
 }
