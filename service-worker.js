@@ -8,7 +8,7 @@ workbox.setConfig({
 workbox.precaching.precacheAndRoute([
   {url: 'index.html', revision: '02.19.25.1'},
   {url: 'manifest.json', revision: '02.19.25.1'},
-  {url: 'assets/js/app.js', revision: '02.19.25.5'},
+  {url: 'assets/js/app.js', revision: '02.19.25.8'},
   {url: 'assets/css/app.css', revision: '11.15.23.1'},
   {url: 'assets/img/32.png', revision: '11.15.23.1'},
   {url: 'assets/img/87.png', revision: '11.15.23.1'},
@@ -34,8 +34,3 @@ workbox.precaching.precacheAndRoute([
 ], {
   ignoreURLParametersMatching: [/.*/]
 });
-
-workbox.routing.registerRoute(
-  ({url}) => url.pathname.endsWith('.pmtiles'),
-  new workbox.strategies.NetworkOnly()
-);

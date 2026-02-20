@@ -1,5 +1,5 @@
 const app = {
-  version: "2026.02.19.5"
+  version: "2026.02.19.8"
 }
 
 const mapStore = localforage.createInstance({
@@ -253,7 +253,7 @@ function handleURLparams(keys) {
                 reverseButtons: true
               }).then((result) => {
                 if (result.isConfirmed) {
-                  fetchFile(key, metadata, header);
+                  fetchFileChunked(key, metadata, header);
                 }
               });
             })
@@ -286,7 +286,7 @@ function handleURLparams(keys) {
                 map.addLayer(layers.tempLayer);
                 map.fitBounds([[header.minLat, header.minLon], [header.maxLat, header.maxLon]], {animate: false});
                 map.addControl(controls.savemapCtrl);
-                document.getElementById("save-map-button").onclick = () => fetchFile(key, metadata, header);
+                document.getElementById("save-map-button").onclick = () => fetchFileChunked(key, metadata, header);
               }
             });
           }
@@ -317,40 +317,57 @@ function handleURLparams(keys) {
   }
 }
 
-function fetchFile(url, metadata, header) {
-  if (navigator.onLine) {
-    Swal.fire({
-      icon: "question",
-      html: `Download the <strong>${metadata.name} (${formatSize(header.tileDataLength)})</strong> map and save to your device for offline use?`,
-      showConfirmButton: true,
-      confirmButtonText: "Save",
-      confirmButtonColor: "#3085d6",
-      showCancelButton: true,
-      showCloseButton: true,
-      reverseButtons: true,
-      showLoaderOnConfirm: true,
-      preConfirm: () => {
-        return fetch(url)
-          .then(response => {
-            if (!response.ok) {
-              throw new Error(response.statusText);
-            }
-            return response.arrayBuffer();
-          })
-          .then(buffer => new Blob([buffer]))
-          .catch(error => {
-            Swal.showValidationMessage(`Request failed: ${error}`);
-          });
-      },
-      allowOutsideClick: () => !Swal.isLoading()
-    }).then((result) => {
-      if (result.isConfirmed) {
-        let name = url.split("/").slice(-1)[0];
-        let file = new File([result.value], name, {type: result.value.type});
-        saveMap(file, name, url);
-      }
-    });
-  } else {
+// function fetchFile(url, metadata, header) {
+//   if (navigator.onLine) {
+//     Swal.fire({
+//       icon: "question",
+//       html: `Download the <strong>${metadata.name} (${formatSize(header.tileDataLength)})</strong> map and save to your device for offline use?`,
+//       showConfirmButton: true,
+//       confirmButtonText: "Save",
+//       confirmButtonColor: "#3085d6",
+//       showCancelButton: true,
+//       showCloseButton: true,
+//       reverseButtons: true,
+//       showLoaderOnConfirm: true,
+//       preConfirm: () => {
+//         return fetch(url)
+//           .then(response => {
+//             if (!response.ok) {
+//               throw new Error(response.statusText);
+//             }
+//             return response.arrayBuffer();
+//           })
+//           .then(buffer => new Blob([buffer]))
+//           .catch(error => {
+//             Swal.showValidationMessage(`Request failed: ${error}`);
+//           });
+//       },
+//       allowOutsideClick: () => !Swal.isLoading()
+//     }).then((result) => {
+//       if (result.isConfirmed) {
+//         let name = url.split("/").slice(-1)[0];
+//         let file = new File([result.value], name, {type: result.value.type});
+//         saveMap(file, name, url);
+//       }
+//     });
+//   } else {
+//     Swal.fire({
+//       icon: "warning",
+//       text: "Must be online to download maps!",
+//       toast: true,
+//       timer: 2500,
+//       position: "center",
+//       showCloseButton: true,
+//       showConfirmButton: false
+//     });
+//   }
+// }
+
+// ==============================================
+// Chunked PWA-safe map download function
+// ==============================================
+async function fetchFileChunked(url, metadata, header) {
+  if (!navigator.onLine) {
     Swal.fire({
       icon: "warning",
       text: "Must be online to download maps!",
@@ -360,7 +377,60 @@ function fetchFile(url, metadata, header) {
       showCloseButton: true,
       showConfirmButton: false
     });
+    return;
   }
+
+  // Confirm download
+  const confirmed = await Swal.fire({
+    icon: "question",
+    html: `Download the <strong>${metadata.name} (${formatSize(header.tileDataLength)})</strong> map and save to your device for offline use?`,
+    showConfirmButton: true,
+    confirmButtonText: "Save",
+    confirmButtonColor: "#3085d6",
+    showCancelButton: true,
+    showCloseButton: true,
+    reverseButtons: true,
+    showLoaderOnConfirm: true,
+    preConfirm: async () => {
+      try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(response.statusText);
+
+        // Stream the response in chunks
+        const reader = response.body.getReader();
+        const chunks = [];
+        let receivedLength = 0;
+
+        while(true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          chunks.push(value);
+          receivedLength += value.length;
+        }
+
+        // Concatenate chunks into one Uint8Array
+        const all = new Uint8Array(receivedLength);
+        let position = 0;
+        for (const chunk of chunks) {
+          all.set(chunk, position);
+          position += chunk.length;
+        }
+
+        // Wrap in a Blob for localForage/File API
+        return new Blob([all]);
+      } catch (error) {
+        Swal.showValidationMessage(`Request failed: ${error}`);
+      }
+    },
+    allowOutsideClick: () => !Swal.isLoading()
+  });
+
+  if (!confirmed.isConfirmed || !confirmed.value) return;
+
+  // Construct File and save
+  const name = url.split("/").pop();
+  const file = new File([confirmed.value], name, { type: confirmed.value.type });
+  saveMap(file, name, url);
 }
 
 function saveMap(file, name, url) {
@@ -690,12 +760,3 @@ function releaseLock() {
     });
   }
 }
-
-// if (navigator.maxTouchPoints > 1) {
-//   acquireLock();
-//   document.addEventListener("visibilitychange", () => {
-//     if (wakeLock !== null && document.visibilityState === "visible") {
-//       acquireLock();
-//     }
-//   });
-// }
