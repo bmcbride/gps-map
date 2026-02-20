@@ -1,5 +1,5 @@
 const app = {
-  version: "2026.02.19.4"
+  version: "2026.02.19.5"
 }
 
 const mapStore = localforage.createInstance({
@@ -333,15 +333,14 @@ function fetchFile(url, metadata, header) {
         return fetch(url)
           .then(response => {
             if (!response.ok) {
-              throw new Error(response.statusText)
+              throw new Error(response.statusText);
             }
-            return response.blob()
+            return response.arrayBuffer();
           })
+          .then(buffer => new Blob([buffer]))
           .catch(error => {
-            Swal.showValidationMessage(
-              `Request failed: ${error}`
-            )
-          })
+            Swal.showValidationMessage(`Request failed: ${error}`);
+          });
       },
       allowOutsideClick: () => !Swal.isLoading()
     }).then((result) => {
