@@ -1,5 +1,5 @@
 const app = {
-  version: "2026.02.20.1"
+  version: "2026.03.05.1"
 }
 
 const mapStore = localforage.createInstance({
@@ -135,7 +135,7 @@ const controls = {
     position: "bottomright",
     flyTo: false,
     // initialZoomLevel: 18,
-    keepCurrentZoomLevel: true,
+    keepCurrentZoomLevel: [15, 18],
     circleStyle: {
       interactive: false
     },
@@ -143,16 +143,14 @@ const controls = {
       interactive: true
     },
     compassStyle: {
-      width: 13,
-      depth: 13
+      fillOpacity: 0.9
     },
     metric: (navigator.language && navigator.language.includes('-US')) ? false : true,
     strings: {
       title: "My location",
       outsideMapBoundsMsg: "Your location is outside the boundaries of the map",
       popup: (options) => {
-        const loc = controls.locateCtrl._marker.getLatLng();
-        return `<div style="text-align: center;">You are within ${Number(options.distance).toLocaleString()} ${options.unit} of<br><strong>${loc.lat.toFixed(6)}</strong>, <strong>${loc.lng.toFixed(6)}</strong></div>`;
+        return `<div style="text-align: center;">You are within ${Number(options.distance).toLocaleString()} ${options.unit} of<br><strong>${options.lat}</strong>, <strong>${options.lng}</strong></div>`;
       }
     },
     locateOptions: {
