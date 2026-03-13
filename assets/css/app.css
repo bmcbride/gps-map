@@ -5,6 +5,12 @@ html, body, #map {
   padding: 0px;
   position: fixed;
 }
+body {
+  padding-top: env(safe-area-inset-top);
+  padding-right: env(safe-area-inset-right);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+}
 #map {
   background: white;
 }
@@ -60,6 +66,15 @@ th, td {
 }
 .leaflet-right {
   max-width: 60vw;
+}
+.leaflet-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.leaflet-bottom.leaflet-left {
+  padding-left: env(safe-area-inset-left);
+}
+.leaflet-bottom.leaflet-right {
+  padding-right: env(safe-area-inset-right);
 }
 .leaflet-control-layers-base label {
   cursor: pointer;
