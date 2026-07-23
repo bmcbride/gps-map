@@ -1,5 +1,5 @@
 const app = {
-  version: "2026.03.13.3"
+  version: "2026.07.23.1"
 }
 
 const mapStore = localforage.createInstance({
@@ -391,7 +391,9 @@ async function fetchFileChunked(url, metadata, header) {
     showLoaderOnConfirm: true,
     preConfirm: async () => {
       try {
-        const response = await fetch(url);
+        const response = await fetch(url, {
+          cache: "no-store"
+        });
         if (!response.ok) throw new Error(response.statusText);
 
         // Stream the response in chunks
