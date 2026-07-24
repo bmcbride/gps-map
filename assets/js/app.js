@@ -10,7 +10,7 @@ const mapStore = localforage.createInstance({
 let layers = {};
 let wakeLock = null;
 
-const map = L.map("map", {
+const map = new L.Map("map", {
   zoomSnap: L.Browser.mobile ? 0 : 1,
   maxZoom: 22,
   zoomControl: false,
@@ -32,12 +32,12 @@ map.on("baselayerchange", (e) => {
     let bounds = e.layer.options.bounds;
     map.setMaxBounds(null);
     map.once("moveend", () => {
-      map.setMaxBounds(L.latLngBounds(bounds).pad(0.25));
+      map.setMaxBounds(new L.LatLngBounds(bounds).pad(0.25));
     });
     map.fitBounds(bounds, {animate: false});
     map.bounds = bounds;
     controls.locateCtrl._isOutsideMapBounds = function() {
-      let llbounds = L.latLngBounds([bounds[0]], [bounds[1]]);
+      let llbounds = new L.LatLngBounds([bounds[0]], [bounds[1]]);
       if (this._event === undefined) {
         return false;
       }
@@ -117,7 +117,7 @@ L.control.savemap = (opts) => {
 }
 
 const controls = {
-  layerCtrl: L.control.layers(null, null, {
+  layerCtrl: new L.Control.Layers(null, null, {
     collapsed: L.Browser.mobile ? true : false,
     sortLayers: true,
     position: "topright"
@@ -184,13 +184,13 @@ const controls = {
     }
   }).addTo(map),
 
-  attributionCtrl: L.control.attribution({
+  attributionCtrl: new L.Control.Attribution({
     // prefix: `<span id="status-indicator" style="color:${navigator.onLine ? "green" : "red"}">&#9673;</span>&nbsp;<span id="status-msg">${navigator.onLine ? "online" : "offline"}</span>`,
     prefix: null,
     position: "bottomleft"
   }).addTo(map),
 
-  scaleCtrl: L.control.scale({
+  scaleCtrl: new L.Control.Scale({
     position: "bottomleft"
   }).addTo(map),
 
@@ -772,4 +772,12 @@ function releaseLock() {
       // alert("Screen Wake Lock released");
     });
   }
+}
+
+if (!L.DomUtil.remove) {
+  L.DomUtil.remove = function (el) {
+    if (el) {
+      el.remove();
+    }
+  };
 }
