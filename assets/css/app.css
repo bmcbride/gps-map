@@ -76,6 +76,11 @@ th, td {
 .leaflet-bottom.leaflet-right {
   padding-right: env(safe-area-inset-right);
 }
+.leaflet-control-layers-list {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
 .leaflet-control-layers-base label {
   cursor: pointer;
   -moz-user-select: none;
